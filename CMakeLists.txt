@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
 project(reading)
 SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_CXX_FLAGS "-Ofast  -march=native -flto -ffat-lto-objects -fuse-linker-plugin")
-add_executable(testing test.cpp)
+SET(CMAKE_CXX_FLAGS "-Ofast -march=native -flto -ffat-lto-objects -fuse-linker-plugin")
+add_executable(testing test.cpp Union.cpp Union.h Prng.cpp Prng.h BitPattern.h Position.cpp Position.h)
