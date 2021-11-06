@@ -4,7 +4,17 @@
 
 #ifndef READING_BITPATTERN_H
 #define READING_BITPATTERN_H
+#include <array>
 
+constexpr size_t get_num_fields(size_t board_size) {
+    size_t num_squares = board_size * board_size;
+    size_t num_fields = num_squares / 64;
+    if ((num_squares % 64ull) == 0)
+        return
+                num_fields;
+    else
+        return num_fields + 1;
+}
 
 template<size_t board_size>
 struct bit_pattern {
