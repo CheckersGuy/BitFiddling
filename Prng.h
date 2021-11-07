@@ -18,11 +18,11 @@ public:
 
     uint64_t operator()();
 
-    uint64_t getSeed();
+    uint64_t getSeed() const;
 
-    uint64_t min();
+    uint64_t min() const;
 
-    uint64_t max();
+    uint64_t max() const;
 
 };
 

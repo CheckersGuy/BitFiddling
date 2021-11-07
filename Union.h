@@ -32,23 +32,13 @@ public:
 
     }
 
-    void merge(uint8_t x, uint8_t y) {
+    void merge(size_t x, size_t y) {
         //doing union by size
-
-
-        size_t rootx = root(x);
-        size_t rooty = root(y);
-
-
-
+        auto rootx = root(x);
+        auto rooty = root(y);
 
         if (rootx == rooty)
             return;
-
-        if((x == 111 && y ==SOUTH<11>) || (y == 111 && x ==SOUTH<11>) ){
-            std::cout<<rootx<<std::endl;
-            std::cout<<rooty<<std::endl;
-        }
 
         if (sizes[rootx] > sizes[rooty]) {
             indices[rooty] = rootx;
@@ -56,11 +46,12 @@ public:
         } else {
             indices[rootx] = rooty;
             sizes[rooty] += sizes[rootx];
+
         }
     }
 
-    size_t root(uint8_t idx) {
-        uint8_t current = idx;
+    size_t root(size_t idx) {
+        size_t current = idx;
         while (current != indices[current]) {
             indices[current] = indices[indices[current]];
             current = indices[current];

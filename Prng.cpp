@@ -11,14 +11,14 @@ uint64_t Prng::operator()() {
     return seed * 2685821657736338717ull;
 }
 
-uint64_t Prng::getSeed() {
+uint64_t Prng::getSeed()const {
     return seed;
 }
 
-uint64_t Prng::max() {
+uint64_t Prng::max()const {
     return std::numeric_limits<uint64_t>::max();
 }
 
-uint64_t Prng::min() {
+uint64_t Prng::min()const {
     return 0ull;
 }
