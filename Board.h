@@ -67,26 +67,26 @@ public:
             un.merge(EAST<board_size>, index);
         }
 
-        if (!is_north_edge<board_size>(index) && get_position().get_square(index - 11) == index_color) {
-            un.merge(index - 11, index);
+        if (!is_north_edge<board_size>(index) && get_position().get_square(index - board_size) == index_color) {
+            un.merge(index - board_size, index);
         }
-        if (!is_south_edge<board_size>(index) && get_position().get_square(index + 11) == index_color) {
-            un.merge(index + 11, index);
+        if (!is_south_edge<board_size>(index) && get_position().get_square(index + board_size) == index_color) {
+            un.merge(index + board_size, index);
         }
         if (!is_west_edge<board_size>(index) && get_position().get_square(index - 1) == index_color) {
             un.merge(index - 1, index);
         }
         if (!is_west_edge<board_size>(index) && !is_south_edge<board_size>(index) &&
-            get_position().get_square(index + 10) == index_color) {
-            un.merge(index + 10, index);
+            get_position().get_square(index + board_size - 1) == index_color) {
+            un.merge(index + board_size - 1, index);
         }
 
         if (!is_east_edge<board_size>(index) && get_position().get_square(index + 1) == index_color) {
             un.merge(index + 1, index);
         }
         if (!is_east_edge<board_size>(index) && !is_north_edge<board_size>(index) &&
-            get_position().get_square(index - 10) == index_color) {
-            un.merge(index - 10, index);
+            get_position().get_square(index - (board_size - 1)) == index_color) {
+            un.merge(index - (board_size - 1), index);
         }
     }
 
@@ -106,40 +106,19 @@ public:
     }
 
     Color play_out() {
-        while(get_winner() == EMPTY) {
+        Color winner = EMPTY;
+        while (winner == EMPTY) {
             auto index = get_position().get_random_empty(gen);
             make_move(index);
+            winner = get_winner();
         }
-        return get_winner();
+        return winner;
     }
 
     Position<board_size> &get_position() {
         return position;
     }
 
-    std::vector<size_t> get_neighbours(size_t index) {
-        std::vector<size_t> result;
-        if (!is_north_edge<board_size>(index)) {
-            result.emplace_back(index - 11);
-        }
-        if (!is_south_edge<board_size>(index)) {
-            result.emplace_back(index + 11);
-        }
-        if (!is_west_edge<board_size>(index)) {
-            result.emplace_back(index - 1);
-            if (!is_south_edge<board_size>(index)) {
-                result.emplace_back(index + 10);
-            }
-        }
-
-        if (!is_east_edge<board_size>(index)) {
-            result.emplace_back(index + 1);
-            if (!is_north_edge<board_size>(index)) {
-                result.emplace_back(index - 10);
-            }
-        }
-        return result;
-    }
 
 };
 

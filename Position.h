@@ -11,7 +11,7 @@
 #include <immintrin.h>
 #include <ostream>
 #include "Prng.h"
-
+#include <iostream>
 
 template<size_t board_size>
 bool is_north_edge(size_t idx) {
@@ -102,22 +102,31 @@ struct Position {
     }
 
     size_t get_random_empty(Prng &generator) {
+        //This function needs to be reworked
         uint64_t rand = generator();
+        if(num_empty ==0){
+            std::cout<<*this<<std::endl;
+        }
         uint64_t index = rand % num_empty;
-        //std::cout << "Index: " << index << std::endl;
+
+        uint64_t local_index = index;
         //Now we need to know where the empty square is
         int field_index = 0;
         size_t count = 0;
+        //std::cout<<"RAnd: "<<index<<std::endl;
         for (auto i = 0; i < BP.fields.size(); ++i) {
             size_t l_empt = get_empty_squares(i);
             size_t num = __builtin_popcountll(l_empt);
+            //std::cout<<"Empties: "<<num<<std::endl;
             count += num;
+            //std::cout<<"Count: "<<count<<std::endl;
             if (count >= index + 1) {
                 field_index = i;
                 break;
             }
-            index = index - num;
+            local_index-=num;
         }
+        std::cout<<"Local: "<<local_index<<std::endl;
         //now wee need to select the empty square given by the index
         uint64_t empty_squares = get_empty_squares(field_index);
         uint64_t index_mask = 1ull << index;

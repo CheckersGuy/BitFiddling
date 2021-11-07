@@ -11,7 +11,7 @@ int main(int argl, const char **argc) {
 
     auto t1 = std::chrono::high_resolution_clock::now();
     int sum = 0;
-    for (auto k = 0; k < 880000; ++k) {
+    for (auto k = 0; k < 1; ++k) {
         Board<11> pos;
         auto result = pos.play_out();
         sum += result;
