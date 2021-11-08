@@ -7,7 +7,7 @@
 
 #include <immintrin.h>
 #include <array>
-
+#include "types.h"
 template<size_t board_size> constexpr size_t NORTH = board_size * board_size;
 
 template<size_t board_size> constexpr size_t SOUTH = board_size * board_size + 1;
@@ -19,7 +19,7 @@ template<size_t board_size>
 class Union {
 public:
     static constexpr size_t NUM_SETS = board_size * board_size + 4;
-    std::array<uint8_t, NUM_SETS> indices;
+    std::array<S, NUM_SETS> indices;
     std::array<uint8_t, NUM_SETS> sizes;
 
 public:

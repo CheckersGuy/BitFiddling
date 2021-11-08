@@ -104,9 +104,9 @@ struct Position {
     size_t get_random_empty(Prng &generator) {
         //This function needs to be reworked
         uint64_t rand = generator();
-        if(num_empty ==0){
+      /*  if(num_empty ==0){
             std::cout<<*this<<std::endl;
-        }
+        }*/
         uint64_t index = rand % num_empty;
 
         uint64_t local_index = index;
@@ -126,10 +126,10 @@ struct Position {
             }
             local_index-=num;
         }
-        std::cout<<"Local: "<<local_index<<std::endl;
+        //std::cout<<"Local: "<<local_index<<std::endl;
         //now wee need to select the empty square given by the index
         uint64_t empty_squares = get_empty_squares(field_index);
-        uint64_t index_mask = 1ull << index;
+        uint64_t index_mask = 1ull << local_index;
         uint64_t empty_square = _pdep_u64(index_mask, empty_squares);
         //std::cout << "OUtput: " << _tzcnt_u64(empty_square) + 64ull * field_index << std::endl;
         return _tzcnt_u64(empty_square) + 64ull * field_index;
