@@ -19,8 +19,8 @@ template<size_t board_size>
 class Union {
 public:
     static constexpr size_t NUM_SETS = board_size * board_size + 4;
-    std::array<S, NUM_SETS> indices;
-    std::array<uint8_t, NUM_SETS> sizes;
+    std::array<SquareType<board_size>, NUM_SETS> indices;
+    std::array<SquareType<board_size>, NUM_SETS> sizes;
 
 public:
 

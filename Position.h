@@ -12,54 +12,7 @@
 #include <ostream>
 #include "Prng.h"
 #include <iostream>
-
-template<size_t board_size>
-bool is_north_edge(size_t idx) {
-    size_t row = (idx / board_size);
-    return row == 0;
-}
-
-template<size_t board_size>
-bool is_south_edge(size_t idx) {
-    size_t row = (idx / board_size);
-    return row == (board_size - 1);
-}
-
-template<size_t board_size>
-bool is_west_edge(size_t idx) {
-    size_t col = (idx % board_size);
-    return col == 0;
-}
-
-template<size_t board_size>
-bool is_east_edge(size_t idx) {
-    size_t col = (idx % board_size);
-    return col == (board_size - 1);
-}
-
-
-template<size_t board_size>
-constexpr uint64_t get_board_mask() {
-    size_t num_squares = board_size * board_size;
-    size_t left_over = num_squares % 64ull;
-    left_over = ((left_over == 0) ? 64 : left_over);
-    uint64_t maske = 0ull;
-    for (auto i = 0; i < left_over; ++i) {
-        maske |= 1ull << i;
-    }
-    return maske;
-}
-
-template<size_t board_size> constexpr uint64_t LEFT_MASK = get_board_mask<board_size>();
-
-
-enum Color : int8_t {
-    BLACK = -1, WHITE = 1, EMPTY = 0
-};
-
-constexpr Color operator~(Color color) {
-    return (color == BLACK) ? WHITE : BLACK;
-}
+#include "types.h"
 
 template<size_t board_size>
 struct Position {
@@ -101,12 +54,16 @@ struct Position {
         return (~squares);
     }
 
+    Color operator[](int index) {
+        return get_square(index);
+    }
+
     size_t get_random_empty(Prng &generator) {
         //This function needs to be reworked
         uint64_t rand = generator();
-      /*  if(num_empty ==0){
-            std::cout<<*this<<std::endl;
-        }*/
+        /*  if(num_empty ==0){
+              std::cout<<*this<<std::endl;
+          }*/
         uint64_t index = rand % num_empty;
 
         uint64_t local_index = index;
@@ -124,7 +81,7 @@ struct Position {
                 field_index = i;
                 break;
             }
-            local_index-=num;
+            local_index -= num;
         }
         //std::cout<<"Local: "<<local_index<<std::endl;
         //now wee need to select the empty square given by the index
@@ -157,6 +114,10 @@ struct Position {
             stream << "\n";
         }
         return stream;
+    }
+
+    Color get_mover(){
+        return color;
     }
 
 };
