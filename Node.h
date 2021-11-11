@@ -43,6 +43,9 @@ public:
         return children.end();
     }
 
+    float get_win_over_visits(){
+        return q_value/((float)num_visits);
+    }
 
     Node *operator[](int index) {
         return children[index].get();
@@ -99,7 +102,7 @@ public:
             //uct formula to be put here
             float p_visits = static_cast<float>(parent->num_visits);
             float uct = q_value / static_cast<float>(num_visits) +
-                        2.4f * std::sqrt(std::log(p_visits) / static_cast<float>(num_visits));
+                          std::sqrt(2.4f*std::log(p_visits) / static_cast<float>(num_visits));
             return uct;
         }
     }

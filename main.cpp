@@ -13,11 +13,14 @@ int main(int argl, const char **argc) {
 
 
     Search<11> search;
+    search.set_max_tree_size(200000000);
     for(auto i=0;i<121;++i){
+        if(search.board.get_winner()!=EMPTY)
+            break;
         if(search.board.get_position().color == BLACK){
-            search.set_max_nodes(1000000);
+            search.set_max_nodes(10500000);
         }else{
-            search.set_max_nodes(1000000);
+            search.set_max_nodes(10500000);
         }
         std::cout<<"Nodes:"<<search.nodes_in_tree<<std::endl;
 
@@ -32,7 +35,11 @@ int main(int argl, const char **argc) {
         std::cout<<"Action: "<<action<<std::endl;
         std::cout<<search.board.get_position().get_num_empty()<<std::endl;
         std::cout<<"Winner"<<search.board.get_winner()<<std::endl;
-
+        auto pv =search.get_pv();
+        std::copy(pv.begin(),pv.end(),std::ostream_iterator<int>(std::cout," "));
+        std::cout<<std::endl;
+        std::cout<<"QValue: "<<((float)~search.board.get_position().color)*search.root->best_child()->get_win_over_visits()<<std::endl;
+        std::cout<<std::endl;
    /*     for(auto&child : search.root->children){
             std::cout<<child->num_visits<<std::endl;
             std::cout<<"Move:" <<child->move<<std::endl;

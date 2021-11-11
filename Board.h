@@ -10,7 +10,6 @@
 #include "Position.h"
 #include "Union.h"
 
-Prng gen(12231ull);
 
 template<size_t board_size>
 class Board {
@@ -105,10 +104,10 @@ public:
         return un;
     }
 
-    Color play_out() {
+    Color play_out(Prng& source) {
         Color winner = EMPTY;
         while (winner == EMPTY) {
-            auto index = get_position().get_random_empty(gen);
+            auto index = get_position().get_random_empty(source);
             make_move(index);
             winner = get_winner();
         }
