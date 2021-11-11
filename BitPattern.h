@@ -168,17 +168,51 @@ struct bit_pattern {
         std::cout << "\n";
     }
 
-    BitSetIterator<board_size> begin() {
-        BitSetIterator<board_size> next(*this);
-        return next;
+    size_t count_bits() {
+        size_t count = 0;
+        for (auto i = 0; i < fields.size() - 1; ++i) {
+            count += __builtin_popcountll(fields[i]);
+        }
+        count += __builtin_popcountll(fields[fields.size() - 1] & LEFT_MASK<board_size>);
+        return count;
     }
 
-    BitSetIterator<board_size> end() {
-        BitSetIterator<board_size> next(*this);
-        next.field_index = get_num_fields(board_size) - 1;
-        next.mask = 0;
-        return next;
+    size_t get_board_index(size_t n) {
+        //this function returns the board_index of the
+        //nth 1 bit !!
+        return 0ull;
     }
+
+    size_t get_random_bit(Prng &generator, size_t num_bits) {
+        //REQUIRES UNIT TESTING
+        //This function needs to be reworked
+        uint64_t rand = generator();
+        uint64_t index = rand % num_bits;
+        uint64_t local_index = index;
+        int field_index = 0;
+        size_t count = 0;
+        for (auto i = 0; i < fields.size(); ++i) {
+            size_t l_empt = fields[i];
+            size_t num = __builtin_popcountll(l_empt);
+            count += num;
+            if (count >= index + 1) {
+                field_index = i;
+                break;
+            }
+            local_index -= num;
+        }
+        uint64_t empty_squares = fields(field_index);
+        uint64_t index_mask = 1ull << local_index;
+        uint64_t empty_square = _pdep_u64(index_mask, empty_squares);
+        return _tzcnt_u64(empty_square) + 64ull * field_index;
+    }
+
+    size_t get_random_bit(Prng &generator) {
+        //above version is for when we are incrementally making moves
+        //so we can keep track of the number of 1 bits without computing them
+        return get_random_bit(generator, count_bits());
+    }
+
 
     bool operator==(bit_pattern other) {
         for (auto i = 0; i < fields.size(); ++i) {
@@ -196,6 +230,17 @@ struct bit_pattern {
         return false;
     }
 
+    BitSetIterator<board_size> begin() {
+        BitSetIterator<board_size> next(*this);
+        return next;
+    }
+
+    BitSetIterator<board_size> end() {
+        BitSetIterator<board_size> next(*this);
+        next.field_index = get_num_fields(board_size) - 1;
+        next.mask = 0;
+        return next;
+    }
 };
 
 

@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include <cstdint>
-#include <c++/10/limits>
+#include <limits>
 #include <memory>
 #include <vector>
 #include "Prng.h"

@@ -8,7 +8,6 @@
 #include "types.h"
 #include "Node.h"
 #include "Search.h"
-
 int main(int argl, const char **argc) {
 
 
