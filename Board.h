@@ -105,7 +105,7 @@ public:
     }
 
     Color play_out(Prng& source) {
-        Color winner = EMPTY;
+        Color winner = get_winner();
         while (winner == EMPTY) {
             auto index = get_position().get_random_empty(source);
             make_move(index);

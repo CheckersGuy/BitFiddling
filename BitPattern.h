@@ -34,8 +34,8 @@ struct BitSetIterator {
 
     explicit BitSetIterator(bit_pattern<board_size> &pattern) : bits(pattern) {
         for (auto i = 0; i < get_num_fields(board_size); ++i) {
+            field_index = i;
             if (pattern.fields[i] != 0) {
-                field_index = i;
                 break;
             }
         }
@@ -83,6 +83,7 @@ template<size_t board_size>
 struct bit_pattern {
     std::array<uint64_t, get_num_fields(board_size)> fields{0};
 
+
     constexpr void set_bit(size_t idx) {
         size_t field_index = idx / 64ull;
         size_t sub_index = idx & (63ull);
@@ -101,7 +102,7 @@ struct bit_pattern {
         return (fields[field_index] & (1ull << sub_index)) != 0;
     }
 
-    friend bit_pattern operator&(bit_pattern &one, bit_pattern &two) {
+    friend bit_pattern operator&(bit_pattern one, bit_pattern two) {
         bit_pattern<board_size> next;
         constexpr size_t last = get_num_fields(board_size) - 1;
         for (auto i = 0; i < last; ++i) {
@@ -125,7 +126,7 @@ struct bit_pattern {
         return *this;
     }
 
-    friend bit_pattern operator|(bit_pattern &one, bit_pattern &two) {
+    friend bit_pattern operator|(bit_pattern one, bit_pattern two) {
         bit_pattern next;
         constexpr size_t last = get_num_fields(board_size) - 1;
         for (auto i = 0; i < last; ++i) {
@@ -228,6 +229,14 @@ struct bit_pattern {
                 return true;
         }
         return false;
+    }
+
+    bool is_empty() {
+        for (auto i = 0; i < fields.size() - 1; ++i) {
+            if (fields[i] != 0)
+                return false;
+        }
+        return (fields[fields.size() - 1] & LEFT_MASK<board_size>) == 0;
     }
 
     BitSetIterator<board_size> begin() {

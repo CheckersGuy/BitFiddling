@@ -13,7 +13,7 @@ class Search {
 
 public:
     Board<board_size> board;
-    size_t max_time;
+    size_t max_time{10000000ull};
     size_t max_nodes;
     size_t max_tree_size;
     size_t nodes_in_tree{0};
@@ -30,21 +30,49 @@ public:
         Board<board_size> iter_board(board);
         Node<board_size> *current = root.get();
 
-        while (current->get_num_children() != 0) {
+        while (current->get_num_children() != 0 && !current->is_terminal()) {
             current = current->select(rand_source);
             iter_board.make_move(current->get_move());
         }
+        bit_pattern<board_size> after_WP;
+        bit_pattern<board_size> after_BP;
 
-        if (iter_board.get_position().get_num_empty() != 0 && nodes_in_tree < max_tree_size) {
+
+        Color mover = iter_board.get_position().get_mover();
+        Color winner = iter_board.get_winner();
+
+/*
+        if (current->is_terminal()) {
+            current->back_up((current->is_won()) ? mover : ~mover, mover, after_WP, after_BP);
+            return;
+        }
+*/
+        if (!current->is_terminal() && winner != 0) {
+            current->make_terminal((mover == winner) ? WIN : LOSS);
+        }
+
+
+
+        if (!current->is_terminal() && iter_board.get_position().get_num_empty() != 0 &&
+            nodes_in_tree < max_tree_size) {
             current->expand(iter_board.get_position());
             nodes_in_tree += iter_board.get_position().get_num_empty();
             auto rand_index = rand_source() % current->get_num_children();
             current = (*current)[rand_index];
             iter_board.make_move(current->get_move());
         }
-        Color mover = iter_board.get_position().get_mover();
+        mover = iter_board.get_position().get_mover();
+        //getting empty squares before the playout for the rave_update
+
+        bit_pattern<board_size> before_WP = iter_board.get_position().WP;
+        bit_pattern<board_size> before_BP = iter_board.get_position().BP;
         Color result = iter_board.play_out(rand_source);
-        current->back_up(result, mover);
+        after_WP = iter_board.get_position().WP;
+        after_BP = iter_board.get_position().BP;
+
+        after_WP = after_WP & (~before_WP);
+        after_BP = after_BP & (~before_BP);
+        current->back_up(result, mover, after_WP, after_BP);
     }
 
     void set_search_time(size_t time) {
@@ -85,7 +113,12 @@ public:
         std::cout << "Deallocation " << (t2 - t1).count() / 1000000 << std::endl;
         nodes_in_tree = 0;
         size_t counter = 0;
+        auto start = std::chrono::high_resolution_clock::now();
         while (counter < max_nodes) {
+            auto end = std::chrono::high_resolution_clock::now();
+            auto time_used = (end - start).count() / 1000000;
+            if (time_used >= max_time)
+                break;
             iterate();
             counter++;
         }

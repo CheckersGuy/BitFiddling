@@ -10,16 +10,46 @@
 #include "Search.h"
 int main(int argl, const char **argc) {
 
+/*
+    bit_pattern<11>test;
+    test.set_bit(10);
+    test.set_bit(11);
+    test.set_bit(100);
+    test.set_bit(101);
 
-    Search<11> search;
-    search.set_max_tree_size(200000000);
-    for(auto i=0;i<121;++i){
+
+    //if the pattern above is empty, iterators do not work anymore
+    //that needs to be fixed and may even resolve search issues
+    for(auto sq : test){
+        std::cout<<sq<<std::endl;
+    }
+
+
+
+
+    return 0;
+*/
+
+
+    constexpr size_t board_size =100;
+    const size_t max_moves = board_size*board_size;
+
+
+    Search<board_size> search;
+    search.set_max_tree_size(100000000);
+    for(auto i=0;i<max_moves;++i){
         if(search.board.get_winner()!=EMPTY)
             break;
+
         if(search.board.get_position().color == BLACK){
-            search.set_max_nodes(10500000);
+            use_rave= false;
+            search.max_time =3000;
+            search.set_max_nodes(1000000000);
+
         }else{
-            search.set_max_nodes(10500000);
+            use_rave=true;
+            search.max_time =3000;
+            search.set_max_nodes(1000000000);
         }
         std::cout<<"Nodes:"<<search.nodes_in_tree<<std::endl;
 
