@@ -9,7 +9,7 @@
 #include "types.h"
 #include <iostream>
 #include <immintrin.h>
-
+#include "Prng.h"
 template<size_t board_size>
 class bit_pattern;
 
@@ -250,6 +250,17 @@ struct bit_pattern {
         next.mask = 0;
         return next;
     }
+
+    friend std::ostream &operator<<(std::ostream &stream, const bit_pattern &pat) {
+        stream.write((char *) &(pat.fields[0]), sizeof(uint64_t) * pat.fields.size());
+        return stream;
+    }
+
+    friend std::istream &operator>>(std::istream &stream, const bit_pattern &pat) {
+        stream.read((char *) &(pat.fields[0]), sizeof(uint64_t) * pat.fields.size());
+        return stream;
+    }
+
 };
 
 

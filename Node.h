@@ -49,11 +49,11 @@ public:
             //uct formula to be put here
             auto p_visits = static_cast<float>(parent->num_visits);
 
-            if (!use_rave) {
+          /*  if (!use_rave) {
                 float uct = q_value / static_cast<float>(num_visits) +
                             std::sqrt(2.4f * std::log(p_visits) / static_cast<float>(num_visits));
                 return uct;
-            } else {
+            } */ {
                 const float bias = 0.001;
                 auto rave_visits = static_cast<float>(num_rave);
                 float rave_value = (q_rave / (1.0 + rave_visits));

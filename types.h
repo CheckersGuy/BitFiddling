@@ -12,7 +12,7 @@
 
 //Squaretype is for example used in the Union class. However, when the board-size increases, 8 bit are
 //not enough to represent board_size**2 values.
-bool use_rave = false;
+
 template<size_t board_size> using SquareType =std::conditional_t<board_size <= 15, uint8_t , uint16_t>;
 
 

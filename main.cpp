@@ -1,37 +1,16 @@
 #include <iostream>
 #include <chrono>
 #include <iterator>
-#include "Prng.h"
 #include "Position.h"
-#include "Union.h"
-#include "Board.h"
 #include "types.h"
 #include "Node.h"
 #include "Search.h"
+
 int main(int argl, const char **argc) {
 
-/*
-    bit_pattern<11>test;
-    test.set_bit(10);
-    test.set_bit(11);
-    test.set_bit(100);
-    test.set_bit(101);
 
 
-    //if the pattern above is empty, iterators do not work anymore
-    //that needs to be fixed and may even resolve search issues
-    for(auto sq : test){
-        std::cout<<sq<<std::endl;
-    }
-
-
-
-
-    return 0;
-*/
-
-
-    constexpr size_t board_size =100;
+    constexpr size_t board_size =3;
     const size_t max_moves = board_size*board_size;
 
 
@@ -42,12 +21,10 @@ int main(int argl, const char **argc) {
             break;
 
         if(search.board.get_position().color == BLACK){
-            use_rave= false;
             search.max_time =3000;
             search.set_max_nodes(1000000000);
 
         }else{
-            use_rave=true;
             search.max_time =3000;
             search.set_max_nodes(1000000000);
         }
@@ -60,7 +37,8 @@ int main(int argl, const char **argc) {
         std::cout << "Time: " << count / 1000000 << std::endl;
         auto action = search.get_best_action();
         search.board.make_move(action);
-        std::cout<<search.board.get_position()<<std::endl;
+        search.board.get_position().print();
+        std::cout<<std::endl;
         std::cout<<"Action: "<<action<<std::endl;
         std::cout<<search.board.get_position().get_num_empty()<<std::endl;
         std::cout<<"Winner"<<search.board.get_winner()<<std::endl;
@@ -112,22 +90,7 @@ int main(int argl, const char **argc) {
 
     return 0;
 
-/*
 
-    auto t1 = std::chrono::high_resolution_clock::now();
-    int sum = 0;
-    for (auto k = 0; k < 50000; ++k) {
-        Board<11> pos;
-        auto result = pos.play_out();
-        sum += result;
-    }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto count = (t2 - t1).count();
-    std::cout << count / 1000000 << std::endl;
-    std::cout << "Summe: " << sum << std::endl;
-
-    constexpr size_t board_size = 11;
-*/
 
 
     return 0;

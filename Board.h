@@ -29,29 +29,6 @@ public:
 
     void add_to_union(int index) {
         const Color index_color = position.get_square(index);
-/*
-
-        if (index == 10) {
-
-            std::cout << position << std::endl;
-            std::exit(-1);
-        }
-*/
-
-        /*  if (index == 52) {
-              auto neigh_color = position.get_square(62);
-              std::cout << "Dummy Test" << std::endl;
-              std::cout << "Color: " << ((index_color == BLACK) ? "BLACK" : "WHITE") << std::endl;
-              std::cout << "Color_Neigh: " << ((neigh_color == BLACK) ? "BLACK" : "WHITE") << std::endl;
-              std::cout << "WestEdge: " << is_west_edge<board_size>(index) << std::endl;
-              std::cout << "SOUTHtEdge: " << is_south_edge<board_size>(index) << std::endl;
-
-
-              std::cout << position << std::endl;
-              position.BP.clear_bit(52);
-              std::cout << position << std::endl;
-              std::exit(-1);
-          }*/
 
         if (index_color == BLACK && is_north_edge<board_size>(index)) {
             un.merge(NORTH<board_size>, index);

@@ -92,33 +92,47 @@ struct Position {
         return _tzcnt_u64(empty_square) + 64ull * field_index;
     }
 
-    friend std::ostream &operator<<(std::ostream &stream, Position &pos) {
+    void print() {
         for (auto i = 0; i < board_size; ++i) {
             for (auto p = 0; p < i; ++p) {
-                stream << " ";
+                std::cout << " ";
             }
-            stream << "\\";
-            stream << " ";
+            std::cout << "\\";
+            std::cout << " ";
             for (auto k = 0; k < board_size; ++k) {
-                if (pos.BP.is_set(board_size * i + k)) {
-                    stream << "B";
-                } else if (pos.WP.is_set(board_size * i + k)) {
-                    stream << "W";
+                if (BP.is_set(board_size * i + k)) {
+                    std::cout << "B";
+                } else if (WP.is_set(board_size * i + k)) {
+                    std::cout << "W";
                 } else {
-                    stream << ".";
+                    std::cout << ".";
                 }
-                stream << " ";
+                std::cout << " ";
 
             }
-            stream << "\\";
-            stream << "\n";
+            std::cout << "\\";
+            std::cout << "\n";
         }
+    }
+
+    Color get_mover() {
+        return color;
+    }
+
+    friend std::ostream &operator<<(std::ostream &stream, const Position &pos) {
+        stream << pos.BP;
+        stream << pos.WP;
+        stream.write((char *) &pos.color, sizeof(Color));
         return stream;
     }
 
-    Color get_mover(){
-        return color;
+    friend std::istream &operator>>(std::istream &stream, const Position &pos) {
+        stream >> pos.BP;
+        stream >> pos.WP;
+        stream.read((char *) &pos.color, sizeof(Color));
+        return stream;
     }
+
 
 };
 
