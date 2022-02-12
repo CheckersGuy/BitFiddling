@@ -10,7 +10,7 @@ int main(int argl, const char **argc) {
 
 
 
-    constexpr size_t board_size =3;
+    constexpr size_t board_size =11;
     const size_t max_moves = board_size*board_size;
 
 
@@ -21,11 +21,11 @@ int main(int argl, const char **argc) {
             break;
 
         if(search.board.get_position().color == BLACK){
-            search.max_time =3000;
+            search.max_time =10000;
             search.set_max_nodes(1000000000);
 
         }else{
-            search.max_time =3000;
+            search.max_time =1000;
             search.set_max_nodes(1000000000);
         }
         std::cout<<"Nodes:"<<search.nodes_in_tree<<std::endl;
@@ -35,6 +35,7 @@ int main(int argl, const char **argc) {
         auto t2 = std::chrono::high_resolution_clock::now();
         auto count = (t2 - t1).count();
         std::cout << "Time: " << count / 1000000 << std::endl;
+        std::cout<<"NumIterations: "<<search.num_iterations<<std::endl;
         auto action = search.get_best_action();
         search.board.make_move(action);
         search.board.get_position().print();

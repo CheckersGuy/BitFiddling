@@ -14,6 +14,7 @@ class Search {
 public:
     Board<board_size> board;
     size_t max_time{10000000ull};
+    size_t num_iterations{0};
     size_t max_nodes;
     size_t max_tree_size;
     size_t nodes_in_tree{0};
@@ -52,7 +53,6 @@ public:
         }
 
 
-
         if (!current->is_terminal() && iter_board.get_position().get_num_empty() != 0 &&
             nodes_in_tree < max_tree_size) {
             current->expand(iter_board.get_position());
@@ -73,6 +73,8 @@ public:
         after_WP = after_WP & (~before_WP);
         after_BP = after_BP & (~before_BP);
         current->back_up(result, mover, after_WP, after_BP);
+
+        num_iterations++;
     }
 
     void set_search_time(size_t time) {
@@ -102,7 +104,12 @@ public:
         return best_child->get_move();
     }
 
+    size_t get_num_iterations() const {
+        return num_iterations;
+    }
+
     void search() {
+        num_iterations = 0;
         if (board.get_winner() != EMPTY)
             return;
 
