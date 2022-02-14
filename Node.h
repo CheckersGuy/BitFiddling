@@ -14,6 +14,9 @@
 #include "Prng.h"
 #include "Position.h"
 #include <memory>
+#include "NodeAllocator.h"
+
+extern bool use_rave;
 
 enum TerminalState : int8_t {
     WIN, LOSS, UNKNOWN
@@ -22,10 +25,16 @@ enum TerminalState : int8_t {
 template<size_t board_size>
 class Node {
 
+
 public:
     using node_ptr = std::unique_ptr<Node<board_size>>;
     Node *parent;
+
+    //storing a pointer to the first child node should be much more efficient
     std::unique_ptr<node_ptr[]> children;
+
+    Node *first_child;
+
     uint32_t num_visits{0};
     uint32_t num_rave{0};
     float q_value{0};
@@ -44,27 +53,34 @@ public:
     float operator()() const {
         //maximally favour unvisited children
         if (num_visits == 0) {
-            return std::numeric_limits<float>::max()-1.0f;
+            return std::numeric_limits<float>::max() - 1.0f;
         } else {
-            //uct formula to be put here
             auto p_visits = static_cast<float>(parent->num_visits);
 
-          /*  if (!use_rave) {
+            if (!use_rave) {
                 float uct = q_value / static_cast<float>(num_visits) +
                             std::sqrt(2.4f * std::log(p_visits) / static_cast<float>(num_visits));
                 return uct;
-            } */ {
-                const float bias = 0.001;
-                auto rave_visits = static_cast<float>(num_rave);
-                float rave_value = (q_rave / (1.0 + rave_visits));
-                float q = q_value / (static_cast<float>(num_visits));
-                float beta = (rave_visits / (rave_visits + static_cast<float>(num_visits) +
-                                             bias * rave_visits * static_cast<float>(num_visits)));
-                return ((1.0f - beta) * q + beta * rave_value);
             }
+            const float bias = 0.001;
+            auto rave_visits = static_cast<float>(num_rave);
+            float rave_value = (q_rave / (1.0 + rave_visits));
+            float q = q_value / (static_cast<float>(num_visits));
+            float beta = (rave_visits / (rave_visits + static_cast<float>(num_visits) +
+                                         bias * rave_visits * static_cast<float>(num_visits)));
+            return ((1.0f - beta) * q + beta * rave_value);
 
 
         }
+    }
+
+    void *operator new(size_t size) {
+        Node *current = (Node *) NodeAllocator<board_size>::get_instance().allocate();
+        return current;
+    }
+
+    void operator delete(void *adress) {
+        NodeAllocator<board_size>::get_instance().free((Node *) adress);
     }
 
 
@@ -179,11 +195,6 @@ public:
     }
 
     Node *select(Prng &generator) {
-        //select is trickier since we want to uniformly select
-        //from all the nodes with max_value
-        //we can find the max_value and at the same time count how many times
-        //we have seen it
-
         size_t num_max = 0;
         Node *anymax = nullptr;
         float max = std::numeric_limits<float>::lowest();
@@ -193,68 +204,57 @@ public:
             if (child_uct > max) {
                 anymax = child.get();
                 max = child_uct;
-                num_max = 1;
-            } else if (child_uct == max) {
-                num_max++;
-            }
-        }
-        if (num_max == 1) {
-            return anymax;
-        }
-
-        size_t rand_index = generator() % num_max;
-        size_t counter = 0;
-
-        for (auto i = 0; i < num_children; ++i) {
-            auto &child = children[i];
-            float child_uct = child->operator()();
-            if (child_uct == max) {
-                if (counter == rand_index) {
-                    return child.get();
-                }
-                counter++;
             }
         }
 
         return anymax;
+
+
     }
 
-    void back_up(Color result, Color turn, bit_pattern<board_size> WP, bit_pattern<board_size> BP) {
-        //backup goes here
+    void back_up(Color result, Color turn, bit_pattern<board_size> &WP, bit_pattern<board_size> &BP) {
+        //rewrite into a more efficient backup operation
         float reward = ((result == turn) ? -1.0f : 1.0f);
         Node *current = this;
 
+        size_t start = 0;
+        size_t length = 0;
         while (current != nullptr) {
 
+            if (use_rave) {
+                if (turn == BLACK && current->num_children > 0) {
+                    for (auto sq: BP) {
+                        for (auto i = 0; i < current->num_children; ++i) {
+                            start++;
+                            if (current->children[i]->move == sq) {
+                                current->children[i]->q_rave += -reward;
+                                current->children[i]->num_rave += 1;
+                                break;
+                            }
+                        }
+                    }
+                } else if (turn == WHITE && current->num_children > 0) {
+                    for (auto sq: WP) {
+                        for (auto i = 0; i < current->num_children; ++i) {
+                            start++;
+                            if (current->children[i]->move == sq) {
+                                current->children[i]->q_rave += -reward;
+                                current->children[i]->num_rave += 1;
+                                break;
+                            }
+                        }
+                    }
+                }
 
-            if (turn == BLACK && current->num_children > 0) {
-                for (auto sq: BP) {
-                    for (auto i = 0; i < current->num_children; ++i) {
-                        if (current->children[i]->move == sq) {
-                            current->children[i]->q_rave += -reward;
-                            current->children[i]->num_rave += 1;
-                            break;
-                        }
-                    }
-                }
-            } else if (turn == WHITE && current->num_children > 0) {
-                for (auto sq: WP) {
-                    for (auto i = 0; i < current->num_children; ++i) {
-                        if (current->children[i]->move == sq) {
-                            current->children[i]->q_rave += -reward;
-                            current->children[i]->num_rave += 1;
-                            break;
-                        }
-                    }
-                }
             }
-
             current->update(reward);
             turn = ~turn;
             reward = -reward;
             current = current->get_parent();
         }
-
+        /*   std::cout<<"Start: "<<start<<std::endl;
+           std::cout<<"Length: "<<length<<std::endl;
+   */
     }
 
 };

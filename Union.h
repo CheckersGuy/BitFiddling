@@ -46,7 +46,6 @@ public:
         } else {
             indices[rootx] = rooty;
             sizes[rooty] += sizes[rootx];
-
         }
     }
 

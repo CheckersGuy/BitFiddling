@@ -8,6 +8,7 @@
 #include "Board.h"
 #include "Prng.h"
 
+
 template<size_t board_size>
 class Search {
 
@@ -24,6 +25,10 @@ public:
 
     Search() : rand_source(std::chrono::duration_cast<std::chrono::milliseconds>
                                    (std::chrono::high_resolution_clock::now().time_since_epoch()).count()) {
+    }
+
+
+    void init(){
         root = std::unique_ptr<Node<board_size>>(new Node<board_size>(board_size * board_size, nullptr));
     }
 
@@ -110,6 +115,7 @@ public:
 
     void search() {
         num_iterations = 0;
+        nodes_in_tree = 0;
         if (board.get_winner() != EMPTY)
             return;
 
