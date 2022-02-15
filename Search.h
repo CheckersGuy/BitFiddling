@@ -23,13 +23,13 @@ public:
     Prng rand_source;
 public:
 
-    Search() : rand_source(std::chrono::duration_cast<std::chrono::milliseconds>
-                                   (std::chrono::high_resolution_clock::now().time_since_epoch()).count()) {
+    Search() : rand_source(1) {
+        max_tree_size = std::numeric_limits<size_t>::max();
     }
 
 
-    void init(){
-        root = std::unique_ptr<Node<board_size>>(new Node<board_size>(board_size * board_size, nullptr));
+    void init() {
+        root = std::make_unique<Node<board_size>>(board_size*board_size,nullptr);
     }
 
     void iterate() {
@@ -40,6 +40,7 @@ public:
             current = current->select(rand_source);
             iter_board.make_move(current->get_move());
         }
+
         bit_pattern<board_size> after_WP;
         bit_pattern<board_size> after_BP;
 
@@ -47,12 +48,7 @@ public:
         Color mover = iter_board.get_position().get_mover();
         Color winner = iter_board.get_winner();
 
-/*
-        if (current->is_terminal()) {
-            current->back_up((current->is_won()) ? mover : ~mover, mover, after_WP, after_BP);
-            return;
-        }
-*/
+
         if (!current->is_terminal() && winner != 0) {
             current->make_terminal((mover == winner) ? WIN : LOSS);
         }
@@ -119,11 +115,6 @@ public:
         if (board.get_winner() != EMPTY)
             return;
 
-        //resetting the root node before starting the search
-        auto t1 = std::chrono::high_resolution_clock::now();
-        root = std::unique_ptr<Node<board_size>>(new Node<board_size>(board_size * board_size, nullptr));
-        auto t2 = std::chrono::high_resolution_clock::now();
-        std::cout << "Deallocation " << (t2 - t1).count() / 1000000 << std::endl;
         nodes_in_tree = 0;
         size_t counter = 0;
         auto start = std::chrono::high_resolution_clock::now();

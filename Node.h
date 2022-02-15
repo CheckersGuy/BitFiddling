@@ -27,14 +27,9 @@ class Node {
 
 
 public:
-    using node_ptr = std::unique_ptr<Node<board_size>>;
-    Node *parent;
-
+    Node<board_size> *parent;
     //storing a pointer to the first child node should be much more efficient
-    std::unique_ptr<node_ptr[]> children;
-
-    Node *first_child;
-
+    Node<board_size> *first_child;
     uint32_t num_visits{0};
     uint32_t num_rave{0};
     float q_value{0};
@@ -53,7 +48,7 @@ public:
     float operator()() const {
         //maximally favour unvisited children
         if (num_visits == 0) {
-            return std::numeric_limits<float>::max() - 1.0f;
+            return std::numeric_limits<float>::max();
         } else {
             auto p_visits = static_cast<float>(parent->num_visits);
 
@@ -62,9 +57,9 @@ public:
                             std::sqrt(2.4f * std::log(p_visits) / static_cast<float>(num_visits));
                 return uct;
             }
-            const float bias = 0.001;
+            const float bias = 0.001f;
             auto rave_visits = static_cast<float>(num_rave);
-            float rave_value = (q_rave / (1.0 + rave_visits));
+            float rave_value = (q_rave / (1.0f + rave_visits));
             float q = q_value / (static_cast<float>(num_visits));
             float beta = (rave_visits / (rave_visits + static_cast<float>(num_visits) +
                                          bias * rave_visits * static_cast<float>(num_visits)));
@@ -74,30 +69,21 @@ public:
         }
     }
 
-    void *operator new(size_t size) {
-        Node *current = (Node *) NodeAllocator<board_size>::get_instance().allocate();
-        return current;
-    }
-
     void operator delete(void *adress) {
         NodeAllocator<board_size>::get_instance().free((Node *) adress);
     }
 
-
-    auto begin() {
-        return children.get();
+    void *operator new(size_t size) {
+        return NodeAllocator<board_size>::get_instance().allocate();
     }
 
-    auto end() {
-        return children.get() + num_visits;
-    }
 
     float get_win_over_visits() {
         return q_value / ((float) num_visits);
     }
 
     Node *operator[](int index) {
-        return children[index].get();
+        return first_child + index;
     }
 
     void update(float reward) {
@@ -135,7 +121,7 @@ public:
 
     bool has_won_child() {
         for (auto i = 0; i < num_children; ++i) {
-            if (children[i]->is_won())
+            if (first_child[i]->is_won())
                 return true;
         }
         return false;
@@ -143,7 +129,7 @@ public:
 
     bool has_lost_child() {
         for (auto i = 0; i < num_children; ++i) {
-            if (children[i]->is_loss())
+            if (first_child[i]->is_loss())
                 return true;
         }
         return false;
@@ -171,11 +157,12 @@ public:
     }
 
     void expand(Position<board_size> &pos) {
-        //expanding goes here
         auto empty_squares = ~(pos.BP | pos.WP);
-        children = std::make_unique<node_ptr[]>(pos.get_num_empty());
+        first_child = NodeAllocator<board_size>::get_instance().allocate_children(pos.get_num_empty());
         for (auto sq: empty_squares) {
-            children[num_children++] = std::make_unique<Node>(sq, this);
+            first_child[num_children].move = sq;
+            first_child[num_children].parent = this;
+            num_children++;
         }
     }
 
@@ -184,10 +171,10 @@ public:
         Node *max = nullptr;
         uint32_t max_visits = 0;
         for (auto i = 0; i < num_children; ++i) {
-            auto &child = children[i];
+            Node<board_size> *child = first_child + i;
             if (child->num_visits > max_visits) {
                 max_visits = child->num_visits;
-                max = child.get();
+                max = child;
             }
         }
 
@@ -196,13 +183,13 @@ public:
 
     Node *select(Prng &generator) {
         size_t num_max = 0;
-        Node *anymax = nullptr;
+        Node<board_size> *anymax = first_child;
         float max = std::numeric_limits<float>::lowest();
         for (auto i = 0; i < num_children; ++i) {
-            auto &child = children[i];
+            Node<board_size> *child = first_child + i;
             float child_uct = child->operator()();
             if (child_uct > max) {
-                anymax = child.get();
+                anymax = first_child+i;
                 max = child_uct;
             }
         }
@@ -225,10 +212,11 @@ public:
                 if (turn == BLACK && current->num_children > 0) {
                     for (auto sq: BP) {
                         for (auto i = 0; i < current->num_children; ++i) {
+                            auto &child = current->first_child[i];
                             start++;
-                            if (current->children[i]->move == sq) {
-                                current->children[i]->q_rave += -reward;
-                                current->children[i]->num_rave += 1;
+                            if (child.move == sq) {
+                                child.q_rave += -reward;
+                                child.num_rave += 1;
                                 break;
                             }
                         }
@@ -236,10 +224,11 @@ public:
                 } else if (turn == WHITE && current->num_children > 0) {
                     for (auto sq: WP) {
                         for (auto i = 0; i < current->num_children; ++i) {
+                            auto &child = current->first_child[i];
                             start++;
-                            if (current->children[i]->move == sq) {
-                                current->children[i]->q_rave += -reward;
-                                current->children[i]->num_rave += 1;
+                            if (child.move == sq) {
+                                child.q_rave += -reward;
+                                child.num_rave += 1;
                                 break;
                             }
                         }
@@ -252,9 +241,6 @@ public:
             reward = -reward;
             current = current->get_parent();
         }
-        /*   std::cout<<"Start: "<<start<<std::endl;
-           std::cout<<"Length: "<<length<<std::endl;
-   */
     }
 
 };

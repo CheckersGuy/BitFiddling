@@ -16,17 +16,7 @@ int main(int argl, const char **argc) {
     allocator.init();
     using NType = Node<9>;
 
-    NType* node =(NType *)allocator.allocate_children(121);
-    node =(NType *)allocator.allocate_children(121);
-    std::cout<<"Allocations:"<<allocator.num_allocations<<std::endl;
-    std::cout<<"Offset: "<<allocator.offset<<std::endl;
 
-    //allocator.release();
-
-
-
-
-    return 0;
 
 
     //some computation
@@ -44,26 +34,27 @@ int main(int argl, const char **argc) {
     const size_t max_moves = board_size * board_size;
 
     Search<board_size> search;
-    search.set_max_tree_size(100000000);
-    for (auto i = 0; i < 1; ++i) {
+    search.set_max_tree_size(200000000);
+
+    for (auto i = 0; i < max_moves; ++i) {
         allocator.reset();
         search.init();
         if (search.board.get_winner() != EMPTY)
             break;
-
         if (search.board.get_position().color == BLACK) {
             use_rave = false;
-            search.max_time = 1000;
-            search.set_max_nodes(100000000);
+            search.max_time = 300000;
+            search.set_max_nodes(1000000000);
 
         } else {
             use_rave = true;
-            search.max_time = 1000;
-            search.set_max_nodes(100000000);
+            search.max_time = 300000;
+            search.set_max_nodes(1000000000);
         }
 
         auto t1 = std::chrono::high_resolution_clock::now();
         search.search();
+
         auto t2 = std::chrono::high_resolution_clock::now();
         auto count = (t2 - t1).count();
         std::cout << "Nodes:" << search.nodes_in_tree << std::endl;
