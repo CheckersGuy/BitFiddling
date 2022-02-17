@@ -22,7 +22,7 @@ struct Position {
     size_t num_empty{board_size * board_size};
 
 
-    void make_move(int idx) {
+    inline void make_move(int idx) {
         if (color == BLACK) {
             BP.set_bit(idx);
         } else {
@@ -37,7 +37,7 @@ struct Position {
         return num_empty;
     }
 
-    Color get_square(int index) {
+    inline Color get_square(int index) {
         if (BP.is_set(index))
             return BLACK;
         if (WP.is_set(index))
@@ -46,7 +46,7 @@ struct Position {
         return EMPTY;
     }
 
-    uint64_t get_empty_squares(int index) {
+    inline uint64_t get_empty_squares(int index) {
         const uint64_t squares = BP.fields[index] | WP.fields[index];
         if (index == BP.fields.size() - 1) {
             return (~squares) & LEFT_MASK<board_size>;
@@ -54,11 +54,12 @@ struct Position {
         return (~squares);
     }
 
-    Color operator[](int index) {
+    inline Color operator[](int index) {
         return get_square(index);
     }
 
-    size_t get_random_empty(Prng &generator) {
+    inline size_t get_random_empty(Prng &generator) {
+        //This function needs to be reworked
         uint64_t rand = generator();
         uint64_t index = rand % num_empty;
 
@@ -75,6 +76,7 @@ struct Position {
             }
             local_index -= num;
         }
+
         uint64_t empty_squares = get_empty_squares(field_index);
         uint64_t index_mask = 1ull << local_index;
         uint64_t empty_square = _pdep_u64(index_mask, empty_squares);

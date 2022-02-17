@@ -23,8 +23,8 @@ public:
     Prng rand_source;
 public:
 
-    Search() : rand_source(1) {
-        max_tree_size = std::numeric_limits<size_t>::max();
+    Search() : rand_source(std::chrono::duration_cast<std::chrono::milliseconds>
+                                   (std::chrono::high_resolution_clock::now().time_since_epoch()).count()) {
     }
 
 

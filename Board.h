@@ -17,18 +17,17 @@ class Board {
 private:
     Union<board_size> un;
     Position<board_size> position;
-    int last_move{-1};
+    SquareType<board_size> last_move{board_size*board_size};
 
 public:
-
-
     void make_move(int index) {
         position.make_move(index);
         add_to_union(index);
+        last_move = index;
     }
 
     void add_to_union(int index) {
-        const Color index_color = position.get_square(index);
+        const Color index_color = ~position.get_mover();
 
         if (index_color == BLACK && is_north_edge<board_size>(index)) {
             un.merge(NORTH<board_size>, index);
@@ -81,7 +80,7 @@ public:
         return un;
     }
 
-    Color play_out(Prng& source) {
+    Color play_out(Prng &source) {
         Color winner = get_winner();
         while (winner == EMPTY) {
             auto index = get_position().get_random_empty(source);
@@ -94,7 +93,6 @@ public:
     Position<board_size> &get_position() {
         return position;
     }
-
 
 
 };

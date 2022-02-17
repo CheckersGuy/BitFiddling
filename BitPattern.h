@@ -106,9 +106,6 @@ struct bit_pattern {
         bit_pattern<board_size> next;
         constexpr size_t last = get_num_fields(board_size) - 1;
         for (auto i = 0; i < last; ++i) {
-            //carefull here, that may not work
-            //the last field needs to be handled carefully
-            //because we dont want to flip bits beyond board_size*board_size
             next.fields[i] = (one.fields[i] & two.fields[i]);
         }
         next.fields[last] = (one.fields[last] & two.fields[last]);

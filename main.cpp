@@ -14,41 +14,23 @@ int main(int argl, const char **argc) {
     constexpr size_t board_size = 9;
     auto &allocator = NodeAllocator<board_size>::get_instance();
     allocator.init();
-    using NType = Node<9>;
-
-
-
-
-    //some computation
-
-
-    /*  std::vector<std::unique_ptr<NType>> nodes;
-
-      for (auto i = 0; i < 53000; i++) {
-          nodes.emplace_back(std::make_unique<NType>());
-      }
-  */
-
-
-
-    const size_t max_moves = board_size * board_size;
 
     Search<board_size> search;
     search.set_max_tree_size(200000000);
 
-    for (auto i = 0; i < max_moves; ++i) {
+    for (auto i = 0; i < board_size*board_size; ++i) {
         allocator.reset();
         search.init();
         if (search.board.get_winner() != EMPTY)
             break;
         if (search.board.get_position().color == BLACK) {
             use_rave = false;
-            search.max_time = 300000;
+            search.max_time = 1000;
             search.set_max_nodes(1000000000);
 
         } else {
             use_rave = true;
-            search.max_time = 300000;
+            search.max_time = 1000;
             search.set_max_nodes(1000000000);
         }
 
@@ -78,39 +60,6 @@ int main(int argl, const char **argc) {
 
     }
 
-
-
-
-
-    /*   Prng g(321231ull);
-
-           for(auto k=0;k<10000000;++k){
-               bit_pattern<11> pattern;
-               std::vector<size_t> indices;
-               for (auto i = 0; i < 30; ++i) {
-                   auto rand = g() % 121;
-                   if(std::find(indices.begin(),indices.end(),rand)==indices.end()){
-                       indices.emplace_back(rand);
-                       pattern.set_bit(rand);
-                   }
-               }
-               std::sort(indices.begin(), indices.end());
-
-               size_t count = 0;
-               for (auto sq: pattern) {
-                   if(indices[count]!=sq){
-                       pattern.print();
-                       std::exit(-1);
-                   }
-
-                   count++;
-               }
-           }
-   */
-
-
     return 0;
 
-
-    return 0;
 }

@@ -24,10 +24,17 @@ template<size_t board_size>
 struct Page {
 
     static constexpr size_t MAX_ALLOC = get_num_entries<board_size>(400000);
-    std::unique_ptr<Node<board_size>[]> entries;
+    Node<board_size> *entries;
 
     Page() {
-        entries = std::make_unique<Node<board_size>[]>(MAX_ALLOC);
+        entries = (Node<board_size> *) malloc(sizeof(Node<board_size>) * MAX_ALLOC);
+        for (auto i = 0; i < MAX_ALLOC; ++i) {
+            entries[i] = Node<board_size>{};
+        }
+    }
+
+    ~Page() {
+        free(entries);
     }
 };
 
@@ -37,7 +44,7 @@ class NodeAllocator {
 public:
     using page_ptr = std::unique_ptr<Page<board_size>>;
     using Type = Node<board_size>;
-    int offset;
+    size_t offset;
     std::vector<page_ptr> pages;
     size_t num_allocations{0};
 public:
@@ -49,7 +56,7 @@ public:
         }
     }
 
-    inline void *allocate() {
+    inline Node<board_size> *allocate() {
         if (offset >= Page<board_size>::MAX_ALLOC) {
             //need to add a new page
             pages.emplace_back(std::make_unique<Page<board_size>>());
@@ -57,7 +64,7 @@ public:
         }
         Page<board_size> *current = pages.back().get();
         num_allocations++;
-        return current->entries.get() + offset++;
+        return current->entries + offset++;
     }
 
     inline Node<board_size> *allocate_children(size_t num_children) {
@@ -69,7 +76,7 @@ public:
             offset = 0;
         }
         Page<board_size> *current = pages.back().get();
-        Node<board_size> *c_node = current->entries.get() + offset;
+        Node<board_size> *c_node = current->entries + offset;
         offset += num_children;
         num_allocations += num_children;
         return c_node;

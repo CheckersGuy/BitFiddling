@@ -28,7 +28,6 @@ class Node {
 
 public:
     Node<board_size> *parent;
-    //storing a pointer to the first child node should be much more efficient
     Node<board_size> *first_child;
     uint32_t num_visits{0};
     uint32_t num_rave{0};
@@ -46,7 +45,6 @@ public:
 
 
     float operator()() const {
-        //maximally favour unvisited children
         if (num_visits == 0) {
             return std::numeric_limits<float>::max();
         } else {
@@ -70,7 +68,7 @@ public:
     }
 
     void operator delete(void *adress) {
-        NodeAllocator<board_size>::get_instance().free((Node *) adress);
+        NodeAllocator<board_size>::get_instance().free((Node<board_size> *) adress);
     }
 
     void *operator new(size_t size) {
@@ -82,7 +80,7 @@ public:
         return q_value / ((float) num_visits);
     }
 
-    Node *operator[](int index) {
+    inline Node *operator[](int index) {
         return first_child + index;
     }
 
@@ -135,7 +133,7 @@ public:
         return false;
     }
 
-    bool is_terminal() {
+    inline bool is_terminal() {
         return state != UNKNOWN;
     }
 
@@ -167,7 +165,6 @@ public:
     }
 
     Node *best_child() {
-        //for now simply selects the child with the most visits
         Node *max = nullptr;
         uint32_t max_visits = 0;
         for (auto i = 0; i < num_children; ++i) {
