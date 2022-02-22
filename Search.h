@@ -5,8 +5,11 @@
 #ifndef READING_SEARCH_H
 #define READING_SEARCH_H
 
+#include <memory>
+#include <chrono>
 #include "Board.h"
 #include "Prng.h"
+#include "Node.h"
 
 
 template<size_t board_size>
@@ -29,7 +32,7 @@ public:
 
 
     void init() {
-        root = std::make_unique<Node<board_size>>(board_size*board_size,nullptr);
+        root = std::make_unique<Node<board_size>>(board_size * board_size, nullptr);
     }
 
     void iterate() {
@@ -98,6 +101,10 @@ public:
 
     void set_max_nodes(size_t nodes) {
         max_nodes = nodes;
+    }
+
+    void set_max_time(size_t time) {
+        max_time = time;
     }
 
     size_t get_best_action() {

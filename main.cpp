@@ -6,18 +6,34 @@
 #include "Node.h"
 #include "Search.h"
 #include "NodeAllocator.h"
-
+#include <string_view>
+#include <ranges>
+#include "Util/Interface.h"
+#include "Util/Util.h"
 bool use_rave;
 
 int main(int argl, const char **argc) {
 
-    constexpr size_t board_size = 9;
+
+
+/*
+
+    Interface inter;
+    inter.loop();
+*/
+
+
+
+
+
+    constexpr size_t board_size = 11;
     auto &allocator = NodeAllocator<board_size>::get_instance();
-    allocator.init();
+
+  /*  return 0;*/
+
 
     Search<board_size> search;
     search.set_max_tree_size(200000000);
-
     for (auto i = 0; i < board_size*board_size; ++i) {
         allocator.reset();
         search.init();
@@ -36,7 +52,6 @@ int main(int argl, const char **argc) {
 
         auto t1 = std::chrono::high_resolution_clock::now();
         search.search();
-
         auto t2 = std::chrono::high_resolution_clock::now();
         auto count = (t2 - t1).count();
         std::cout << "Nodes:" << search.nodes_in_tree << std::endl;
@@ -59,6 +74,7 @@ int main(int argl, const char **argc) {
 
 
     }
+
 
     return 0;
 

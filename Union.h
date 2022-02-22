@@ -14,7 +14,6 @@ template<size_t board_size> constexpr size_t SOUTH = board_size * board_size + 1
 template<size_t board_size> constexpr size_t WEST = board_size * board_size + 2;
 template<size_t board_size> constexpr size_t EAST = board_size * board_size + 3;
 
-
 template<size_t board_size>
 class Union {
 public:
@@ -29,7 +28,6 @@ public:
             indices[i] = i;
             sizes[i] = 1;
         }
-
     }
 
     void merge(size_t x, size_t y) {

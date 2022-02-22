@@ -22,7 +22,12 @@ struct Position {
     size_t num_empty{board_size * board_size};
 
 
-    inline void make_move(int idx) {
+    static Position get_empty_position() {
+        Position pos;
+        return pos;
+    }
+
+    void make_move(int idx) {
         if (color == BLACK) {
             BP.set_bit(idx);
         } else {
@@ -30,6 +35,16 @@ struct Position {
         }
         color = ~color;
         num_empty -= 1;
+    }
+
+    void unmake_move(int idx) {
+        if (color == BLACK) {
+            BP.clear_bit(idx);
+        } else {
+            WP.clear_bit(idx);
+        }
+        color = ~color;
+        num_empty += 1;
     }
 
 
@@ -56,6 +71,14 @@ struct Position {
 
     inline Color operator[](int index) {
         return get_square(index);
+    }
+
+
+    std::array<int, 6> get_neighbours(SquareType<board_size> hex_point) {
+        //gets the neighbours of the particular hexpoint
+        //using dummy values for edges
+        std::array<int, 6> result;
+
     }
 
     inline size_t get_random_empty(Prng &generator) {

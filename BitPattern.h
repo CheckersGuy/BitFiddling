@@ -175,11 +175,6 @@ struct bit_pattern {
         return count;
     }
 
-    size_t get_board_index(size_t n) {
-        //this function returns the board_index of the
-        //nth 1 bit !!
-        return 0ull;
-    }
 
     size_t get_random_bit(Prng &generator, size_t num_bits) {
         //REQUIRES UNIT TESTING

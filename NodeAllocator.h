@@ -84,8 +84,7 @@ public:
 
 
     inline void free(Type *ptr) {
-        //do something or not
-        //decrement offset for now
+
 
     }
 
