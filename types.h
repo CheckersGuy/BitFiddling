@@ -6,7 +6,6 @@
 #define READING_TYPES_H
 
 #include <cstdint>
-
 template<size_t board_size> using SquareType =std::conditional_t<board_size <= 15, uint8_t , uint16_t>;
 
 
@@ -32,6 +31,12 @@ template<size_t board_size>
 bool is_east_edge(size_t idx) {
     size_t col = (idx % board_size);
     return col == (board_size - 1);
+}
+
+template<size_t board_size>
+bool is_on_edge(size_t idx){
+    return is_east_edge<board_size>(idx) | is_west_edge<board_size>(idx)|
+            is_south_edge<board_size>(idx) || is_north_edge<board_size>(idx);
 }
 
 

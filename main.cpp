@@ -10,7 +10,6 @@
 #include <ranges>
 #include "Util/Interface.h"
 #include "Util/Util.h"
-bool use_rave;
 
 int main(int argl, const char **argc) {
 
@@ -23,6 +22,9 @@ int main(int argl, const char **argc) {
 */
 
 
+
+//40-45k simulations per second with backup function
+//next testing with backup2
 
 
 
@@ -40,12 +42,10 @@ int main(int argl, const char **argc) {
         if (search.board.get_winner() != EMPTY)
             break;
         if (search.board.get_position().color == BLACK) {
-            use_rave = false;
-            search.max_time = 1000;
+            search.max_time = 10000;
             search.set_max_nodes(1000000000);
 
         } else {
-            use_rave = true;
             search.max_time = 1000;
             search.set_max_nodes(1000000000);
         }

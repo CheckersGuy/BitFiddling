@@ -17,8 +17,6 @@
 #include "NodeAllocator.h"
 
 
-extern bool use_rave;
-
 enum TerminalState : int8_t {
     WIN, LOSS, UNKNOWN
 };
@@ -51,17 +49,12 @@ public:
         } else {
             auto p_visits = static_cast<double>(parent->num_visits);
 
-            if (!use_rave) {
-                float uct = q_value / static_cast<double>(num_visits) +
-                            std::sqrt(2.4 * std::log(p_visits) / static_cast<double>(num_visits));
-                return uct;
-            }
             const double bias = 0.001;
             auto rave_visits = static_cast<double>(num_rave);
             double rave_value = (q_rave / (1.0 + rave_visits));
             double q = q_value / (static_cast<double>(num_visits));
             double beta = (rave_visits / (rave_visits + static_cast<double>(num_visits) +
-                                         bias * rave_visits * static_cast<double>(num_visits)));
+                                          bias * rave_visits * static_cast<double>(num_visits)));
             return ((1.0 - beta) * q + beta * rave_value);
 
 
@@ -197,16 +190,15 @@ public:
 
     }
 
-    void back_up2(Position<board_size>& pos, Color result, Color turn, bit_pattern<board_size> &WP, bit_pattern<board_size> &BP) {
+    void back_up2(Position<board_size> &pos, Color result, Color turn, bit_pattern<board_size> &WP,
+                  bit_pattern<board_size> &BP) {
         //a new version of the backup operator which should be a lot faster
 
         float reward = ((result == turn) ? -1.0f : 1.0f);
         Node *current = this;
+        Position<board_size> copy = pos;
 
         while (current != nullptr) {
-            if (use_rave) {
-                //finding the child in a different way
-
                 if (turn == BLACK && current->num_children > 0) {
                     for (auto sq: BP) {
                         for (auto i = 0; i < current->num_children; ++i) {
@@ -231,8 +223,8 @@ public:
                     }
                 }
 
-            }
             current->update(reward);
+            copy.unmake_move(current->move);
             turn = ~turn;
             reward = -reward;
             pos.unmake_move(current->get_move());
@@ -248,7 +240,6 @@ public:
 
         while (current != nullptr) {
 
-            if (use_rave) {
                 if (turn == BLACK && current->num_children > 0) {
                     for (auto sq: BP) {
                         for (auto i = 0; i < current->num_children; ++i) {
@@ -273,7 +264,6 @@ public:
                     }
                 }
 
-            }
             current->update(reward);
             turn = ~turn;
             reward = -reward;

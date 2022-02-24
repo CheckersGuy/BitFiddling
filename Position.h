@@ -74,12 +74,18 @@ struct Position {
     }
 
 
-    std::array<int, 6> get_neighbours(SquareType<board_size> hex_point) {
-        //gets the neighbours of the particular hexpoint
-        //using dummy values for edges
-        std::array<int, 6> result;
+    std::array<size_t, 6> get_neighbours(SquareType<board_size> hex_point) {
+        std::array<size_t, 6> result{};
+        result[0] = hex_point - board_size;
+        result[1] = hex_point - 1;
+        result[2] = hex_point + (board_size - 1);
+        result[3] = hex_point + board_size;
+        result[4] = hex_point + 1;
+        result[5] = hex_point - ((board_size - 1));
 
+        return result;
     }
+
 
     inline size_t get_random_empty(Prng &generator) {
         //This function needs to be reworked
