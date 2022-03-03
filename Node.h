@@ -190,54 +190,9 @@ public:
 
     }
 
-    void back_up2(Position<board_size> &pos, Color result, Color turn, bit_pattern<board_size> &WP,
-                  bit_pattern<board_size> &BP) {
-        //a new version of the backup operator which should be a lot faster
-
-        float reward = ((result == turn) ? -1.0f : 1.0f);
-        Node *current = this;
-        Position<board_size> copy = pos;
-
-        while (current != nullptr) {
-                if (turn == BLACK && current->num_children > 0) {
-                    for (auto sq: BP) {
-                        for (auto i = 0; i < current->num_children; ++i) {
-                            auto &child = current->first_child[i];
-                            if (child.move == sq) {
-                                child.q_rave += -reward;
-                                child.num_rave += 1;
-                                break;
-                            }
-                        }
-                    }
-                } else if (turn == WHITE && current->num_children > 0) {
-                    for (auto sq: WP) {
-                        for (auto i = 0; i < current->num_children; ++i) {
-                            auto &child = current->first_child[i];
-                            if (child.move == sq) {
-                                child.q_rave += -reward;
-                                child.num_rave += 1;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-            current->update(reward);
-            copy.unmake_move(current->move);
-            turn = ~turn;
-            reward = -reward;
-            pos.unmake_move(current->get_move());
-            current = current->get_parent();
-        }
-    }
-
     void back_up(Color result, Color turn, bit_pattern<board_size> &WP, bit_pattern<board_size> &BP) {
-        //rewrite into a more efficient backup operation
         float reward = ((result == turn) ? -1.0f : 1.0f);
         Node *current = this;
-
-
         while (current != nullptr) {
 
                 if (turn == BLACK && current->num_children > 0) {

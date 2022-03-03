@@ -63,7 +63,7 @@ struct Position {
 
     inline uint64_t get_empty_squares(int index) {
         const uint64_t squares = BP.fields[index] | WP.fields[index];
-        if (index == BP.fields.size() - 1) {
+        if (index == BP.size - 1) {
             return (~squares) & LEFT_MASK<board_size>;
         }
         return (~squares);
@@ -87,6 +87,8 @@ struct Position {
     }
 
 
+
+
     inline size_t get_random_empty(Prng &generator) {
         //This function needs to be reworked
         uint64_t rand = generator();
@@ -95,7 +97,7 @@ struct Position {
         uint64_t local_index = index;
         int field_index = 0;
         size_t count = 0;
-        for (auto i = 0; i < BP.fields.size(); ++i) {
+        for (auto i = 0; i < BP.size; ++i) {
             size_t l_empt = get_empty_squares(i);
             size_t num = __builtin_popcountll(l_empt);
             count += num;

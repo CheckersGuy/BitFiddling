@@ -7,6 +7,11 @@
 
 #include <cstdint>
 template<size_t board_size> using SquareType =std::conditional_t<board_size <= 15, uint8_t , uint16_t>;
+template<size_t board_size> constexpr size_t NORTH = board_size * board_size;
+
+template<size_t board_size> constexpr size_t SOUTH = board_size * board_size + 1;
+template<size_t board_size> constexpr size_t WEST = board_size * board_size + 2;
+template<size_t board_size> constexpr size_t EAST = board_size * board_size + 3;
 
 
 template<size_t board_size>

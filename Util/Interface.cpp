@@ -62,7 +62,6 @@ void Interface::search_position(int max_time, int max_nodes) {
     search.init();
     search.set_max_nodes(max_nodes);
     search.set_max_time(max_time);
-    NodeAllocator<11>::get_instance().reset();
     search.init();
     search.search();
 }

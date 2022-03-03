@@ -8,27 +8,51 @@
 #include <immintrin.h>
 #include <array>
 #include "types.h"
-template<size_t board_size> constexpr size_t NORTH = board_size * board_size;
-
-template<size_t board_size> constexpr size_t SOUTH = board_size * board_size + 1;
-template<size_t board_size> constexpr size_t WEST = board_size * board_size + 2;
-template<size_t board_size> constexpr size_t EAST = board_size * board_size + 3;
 
 template<size_t board_size>
 class Union {
 public:
     static constexpr size_t NUM_SETS = board_size * board_size + 4;
-    std::array<SquareType<board_size>, NUM_SETS> indices;
-    std::array<SquareType<board_size>, NUM_SETS> sizes;
+    /* std::array<SquareType<board_size>, NUM_SETS> indices;
+     std::array<SquareType<board_size>, NUM_SETS> sizes;*/
+    size_t size;
+    std::unique_ptr<uint16_t[]> indices;
+    std::unique_ptr<uint16_t[]> sizes;
+
 
 public:
 
     Union() {
-        for (size_t i = 0; i < NUM_SETS; ++i) {
+        size = board_size * board_size + 4;
+        indices = std::make_unique<uint16_t[]>(size);
+        sizes = std::make_unique<uint16_t[]>(size);
+        for (size_t i = 0; i < size; ++i) {
             indices[i] = i;
             sizes[i] = 1;
         }
     }
+
+    Union(const Union &other) {
+        size = other.size;
+        indices = std::make_unique<uint16_t[]>(size);
+        sizes = std::make_unique<uint16_t[]>(size);
+        for (size_t i = 0; i < size; ++i) {
+            indices[i] = other.indices[i];
+            sizes[i] = other.sizes[i];
+        }
+    }
+
+    Union &operator=(const Union &other) {
+        size = other.size;
+        indices = std::make_unique<uint16_t[]>(size);
+        sizes = std::make_unique<uint16_t[]>(size);
+        for (size_t i = 0; i < size; ++i) {
+            indices[i] = other.indices[i];
+            sizes[i] = other.sizes[i];
+        }
+        return *this;
+    }
+
 
     void merge(size_t x, size_t y) {
         //doing union by size

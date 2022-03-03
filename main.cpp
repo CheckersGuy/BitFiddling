@@ -15,10 +15,16 @@ int main(int argl, const char **argc) {
 
 
 
+
+
+
 /*
 
     Interface inter;
     inter.loop();
+
+
+
 */
 
 
@@ -28,14 +34,12 @@ int main(int argl, const char **argc) {
 
 
 
-    constexpr size_t board_size = 11;
+    constexpr size_t board_size = 9;
     auto &allocator = NodeAllocator<board_size>::get_instance();
-
-  /*  return 0;*/
 
 
     Search<board_size> search;
-    search.set_max_tree_size(200000000);
+    search.set_max_tree_size(100000000);
     for (auto i = 0; i < board_size*board_size; ++i) {
         allocator.reset();
         search.init();
@@ -46,7 +50,7 @@ int main(int argl, const char **argc) {
             search.set_max_nodes(1000000000);
 
         } else {
-            search.max_time = 1000;
+            search.max_time = 10000;
             search.set_max_nodes(1000000000);
         }
 

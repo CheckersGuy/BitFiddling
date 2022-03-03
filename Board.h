@@ -100,50 +100,56 @@ public:
             //will be done later
             return;
         }
-        Position<board_size> neigh;
+            Position<board_size> neigh;
 
 
-        size_t rand_start = random_source() % 6;
-        Color opp_color = ~position.get_square(hex_point);
-      auto neigh_bours = position.get_neighbours(hex_point);
-        /*
-               for (auto sq: neigh_bours) {
-                   neigh.BP.set_bit(sq);
-               }
-       */
-        size_t state = 0;
-        size_t ret = 0;
-        for (auto i = 0; i < 6; ++i) {
-            auto index = rand_start + i;
-            index = index % 6;
-            auto value = neigh_bours[index];
+            size_t rand_start = random_source() % 6;
+            Color opp_color = ~position.get_square(hex_point);
+            auto neigh_bours = position.get_neighbours(hex_point);
+            /*
+                   for (auto sq: neigh_bours) {
+                       neigh.BP.set_bit(sq);
+                   }
+           */
+            size_t state = 0;
+            size_t ret = 0;
+            for (auto i = 0; i < 6; ++i) {
+                auto index = rand_start + i;
+                index = index % 6;
+                auto value = neigh_bours[index];
+                Color current;
+                if (value == NORTH<board_size> || value == SOUTH<board_size>) {
+                    current = BLACK;
+                } else if (value == WEST<board_size> || value == EAST<board_size>) {
+                    current = WHITE;
+                } else {
+                    current = position.get_square(value);
+                }
 
-            const Color current = position.get_square(value);
-
-            if (state == 0 && opp_color == current) {
-                state = 1;
-            } else if (state == 1 && current == EMPTY) {
-                ret = neigh_bours[index];
-                state = 2;
-            } else if (state == 2 && current == opp_color) {
-         /*       std::cout << "Index: " << hex_point << std::endl;
-                Position<board_size> test;
-                test.BP.set_bit(hex_point);
-                test.print();
-                neigh.print();
-                position.print();*/
-                make_move(ret);
-               /* position.print();
-                std::cout << std::endl;*/
-                break;
-            } else {
-                state = 0;
+                if (state == 0 && opp_color == current) {
+                    state = 1;
+                } else if (state == 1 && current == EMPTY) {
+                    ret = neigh_bours[index];
+                    state = 2;
+                } else if (state == 2 && current == opp_color) {
+                    /*       std::cout << "Index: " << hex_point << std::endl;
+                           Position<board_size> test;
+                           test.BP.set_bit(hex_point);
+                           test.print();
+                           neigh.print();
+                           position.print();*/
+                    make_move(ret);
+                    /* position.print();
+                     std::cout << std::endl;*/
+                    break;
+                } else {
+                    state = 0;
+                }
             }
         }
-    }
 
 
-};
+    };
 
 
 #endif //READING_BOARD_H

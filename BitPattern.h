@@ -9,7 +9,11 @@
 #include "types.h"
 #include <iostream>
 #include <immintrin.h>
+#include <memory>
 #include "Prng.h"
+#include <cstring>
+#include <memory>
+
 template<size_t board_size>
 class bit_pattern;
 
@@ -81,7 +85,27 @@ struct BitSetIterator {
 
 template<size_t board_size>
 struct bit_pattern {
-    std::array<uint64_t, get_num_fields(board_size)> fields{0};
+    //std::array<uint64_t, get_num_fields(board_size)> fields{0};
+    std::unique_ptr<uint64_t[]> fields;
+    size_t size;
+
+
+    bit_pattern() : size(get_num_fields(board_size)) {
+        fields = std::make_unique<uint64_t[]>(size);
+    }
+
+    bit_pattern(const bit_pattern &other) {
+        size = other.size;
+        fields = std::make_unique<uint64_t[]>(size);
+        std::memcpy(fields.get(), other.fields.get(), sizeof(uint64_t) * size);
+    }
+
+    bit_pattern &operator=(const bit_pattern &other) {
+        size = other.size;
+        fields = std::make_unique<uint64_t[]>(size);
+        std::memcpy(fields.get(), other.fields.get(), sizeof(uint64_t) * size);
+        return *this;
+    }
 
 
     constexpr void set_bit(size_t idx) {
@@ -168,10 +192,10 @@ struct bit_pattern {
 
     size_t count_bits() {
         size_t count = 0;
-        for (auto i = 0; i < fields.size() - 1; ++i) {
+        for (auto i = 0; i < size - 1; ++i) {
             count += __builtin_popcountll(fields[i]);
         }
-        count += __builtin_popcountll(fields[fields.size() - 1] & LEFT_MASK<board_size>);
+        count += __builtin_popcountll(fields[size - 1] & LEFT_MASK<board_size>);
         return count;
     }
 
@@ -184,7 +208,7 @@ struct bit_pattern {
         uint64_t local_index = index;
         int field_index = 0;
         size_t count = 0;
-        for (auto i = 0; i < fields.size(); ++i) {
+        for (auto i = 0; i < size; ++i) {
             size_t l_empt = fields[i];
             size_t num = __builtin_popcountll(l_empt);
             count += num;
@@ -194,7 +218,7 @@ struct bit_pattern {
             }
             local_index -= num;
         }
-        uint64_t empty_squares = fields(field_index);
+        uint64_t empty_squares = fields[field_index];
         uint64_t index_mask = 1ull << local_index;
         uint64_t empty_square = _pdep_u64(index_mask, empty_squares);
         return _tzcnt_u64(empty_square) + 64ull * field_index;
@@ -208,7 +232,7 @@ struct bit_pattern {
 
 
     bool operator==(bit_pattern other) {
-        for (auto i = 0; i < fields.size(); ++i) {
+        for (auto i = 0; i < size; ++i) {
             if (fields[i] != other.fields[i])
                 return false;
         }
@@ -216,7 +240,7 @@ struct bit_pattern {
     }
 
     bool operator!=(bit_pattern other) {
-        for (auto i = 0; i < fields.size(); ++i) {
+        for (auto i = 0; i < size; ++i) {
             if (fields[i] != other.fields[i])
                 return true;
         }
@@ -224,11 +248,11 @@ struct bit_pattern {
     }
 
     bool is_empty() {
-        for (auto i = 0; i < fields.size() - 1; ++i) {
+        for (auto i = 0; i < size - 1; ++i) {
             if (fields[i] != 0)
                 return false;
         }
-        return (fields[fields.size() - 1] & LEFT_MASK<board_size>) == 0;
+        return (fields[size - 1] & LEFT_MASK<board_size>) == 0;
     }
 
     BitSetIterator<board_size> begin() {
@@ -244,12 +268,12 @@ struct bit_pattern {
     }
 
     friend std::ostream &operator<<(std::ostream &stream, const bit_pattern &pat) {
-        stream.write((char *) &(pat.fields[0]), sizeof(uint64_t) * pat.fields.size());
+        stream.write((char *) &(pat.fields[0]), sizeof(uint64_t) * pat.size);
         return stream;
     }
 
     friend std::istream &operator>>(std::istream &stream, const bit_pattern &pat) {
-        stream.read((char *) &(pat.fields[0]), sizeof(uint64_t) * pat.fields.size());
+        stream.read((char *) &(pat.fields[0]), sizeof(uint64_t) * pat.size);
         return stream;
     }
 
