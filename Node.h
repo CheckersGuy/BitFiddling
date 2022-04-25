@@ -23,8 +23,6 @@ enum TerminalState : int8_t {
 
 template<size_t board_size>
 class Node {
-
-
 public:
     Node<board_size> *parent;
     Node<board_size> *first_child;

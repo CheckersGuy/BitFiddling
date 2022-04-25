@@ -14,10 +14,6 @@
 int main(int argl, const char **argc) {
 
 
-
-
-
-
 /*
 
     Interface inter;
@@ -34,7 +30,7 @@ int main(int argl, const char **argc) {
 
 
 
-    constexpr size_t board_size = 9;
+    constexpr size_t board_size = 11;
     auto &allocator = NodeAllocator<board_size>::get_instance();
 
 
@@ -46,11 +42,11 @@ int main(int argl, const char **argc) {
         if (search.board.get_winner() != EMPTY)
             break;
         if (search.board.get_position().color == BLACK) {
-            search.max_time = 10000;
+            search.max_time = 1000;
             search.set_max_nodes(1000000000);
 
         } else {
-            search.max_time = 10000;
+            search.max_time = 1000;
             search.set_max_nodes(1000000000);
         }
 
