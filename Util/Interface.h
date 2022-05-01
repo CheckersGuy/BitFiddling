@@ -28,6 +28,11 @@ public:
 
     void loop();
 
+    void send_new_pv();
+
+    //board size and starting position -- too be implemented
+    void new_game();
+
     void search_position(int max_time, int max_nodes);
 };
 
