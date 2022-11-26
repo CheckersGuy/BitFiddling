@@ -33,6 +33,12 @@ public:
 
     void init() {
         root = std::make_unique<Node<board_size>>(board_size * board_size, nullptr);
+        nodes_in_tree=0;
+    }
+
+    void reset(){
+        root.reset();
+        nodes_in_tree=0;
     }
 
     void iterate() {
@@ -40,7 +46,7 @@ public:
         Node<board_size> *current = root.get();
 
         while (current->get_num_children() != 0 && !current->is_terminal()) {
-            current = current->select(rand_source);
+            current = current->select();
             iter_board.make_move(current->get_move());
         }
 

@@ -141,14 +141,41 @@ struct Position {
         return color;
     }
 
-    friend std::ostream &operator<<(std::ostream &stream, const Position &pos) {
+    friend std::ostream& operator<<(std::ostream& stream,const Position& other) {
+
+        for (auto i = 0; i < board_size; ++i) {
+            for (auto p = 0; p < i; ++p) {
+                stream << " ";
+            }
+            stream << "\\";
+            stream << " ";
+            for (auto k = 0; k < board_size; ++k) {
+                if (other.is_set(board_size * i + k)) {
+                    stream << "B";
+                } else if (other.is_set(board_size * i + k)) {
+                    stream << "W";
+                } else {
+                    stream << ".";
+                }
+                stream << " ";
+
+            }
+            stream << "\\";
+            stream << "\n";
+            return stream;
+        }
+    }
+
+
+
+    friend std::ofstream &operator<<(std::ofstream &stream, const Position &pos) {
         stream << pos.BP;
         stream << pos.WP;
         stream.write((char *) &pos.color, sizeof(Color));
         return stream;
     }
 
-    friend std::istream &operator>>(std::istream &stream, const Position &pos) {
+    friend std::ifstream &operator>>(std::ifstream &stream, const Position &pos) {
         stream >> pos.BP;
         stream >> pos.WP;
         stream.read((char *) &pos.color, sizeof(Color));

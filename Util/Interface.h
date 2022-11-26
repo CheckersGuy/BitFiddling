@@ -7,7 +7,6 @@
 
 #include "../Board.h"
 #include "../Search.h"
-#include "../NodeAllocator.h"
 #include "Util.h"
 //some protocol to communicate with a gui
 

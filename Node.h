@@ -4,7 +4,6 @@
 
 #ifndef READING_NODE_H
 #define READING_NODE_H
-
 #include <math.h>
 #include "Position.h"
 #include <cstdint>
@@ -14,7 +13,7 @@
 #include "Prng.h"
 #include "Position.h"
 #include <memory>
-#include "NodeAllocator.h"
+
 
 
 enum TerminalState : int8_t {
@@ -25,7 +24,7 @@ template<size_t board_size>
 class Node {
 public:
     Node<board_size> *parent;
-    Node<board_size> *first_child;
+    std::unique_ptr<Node<board_size>[]>children;
     uint32_t num_visits{0};
     uint32_t num_rave{0};
     double q_value{0};
@@ -59,21 +58,12 @@ public:
         }
     }
 
-    void operator delete(void *adress) {
-        NodeAllocator<board_size>::get_instance().free((Node<board_size> *) adress);
-    }
-
-
-    void *operator new(size_t size) {
-        return NodeAllocator<board_size>::get_instance().allocate();
-    }
-
     double get_win_over_visits() {
         return q_value / ((double) num_visits);
     }
 
     inline Node *operator[](int index) {
-        return first_child + index;
+        return &children[index];
     }
 
     void update(float reward) {
@@ -111,7 +101,7 @@ public:
 
     bool has_won_child() {
         for (auto i = 0; i < num_children; ++i) {
-            if (first_child[i]->is_won())
+            if (children[i].is_won())
                 return true;
         }
         return false;
@@ -119,7 +109,7 @@ public:
 
     bool has_lost_child() {
         for (auto i = 0; i < num_children; ++i) {
-            if (first_child[i]->is_loss())
+            if (children[i].is_loss())
                 return true;
         }
         return false;
@@ -148,10 +138,10 @@ public:
 
     void expand(Position<board_size> &pos) {
         auto empty_squares = ~(pos.BP | pos.WP);
-        first_child = NodeAllocator<board_size>::get_instance().allocate_children(pos.get_num_empty());
+        children =  std::make_unique<Node<board_size>[]>(pos.get_num_empty());
         for (auto sq: empty_squares) {
-            first_child[num_children].move = sq;
-            first_child[num_children].parent = this;
+            children[num_children].move = sq;
+            children[num_children].parent = this;
             num_children++;
         }
     }
@@ -160,7 +150,7 @@ public:
         Node *max = nullptr;
         uint32_t max_visits = 0;
         for (auto i = 0; i < num_children; ++i) {
-            Node<board_size> *child = first_child + i;
+            Node<board_size> *child = &children[i];
             if (child->num_visits > max_visits) {
                 max_visits = child->num_visits;
                 max = child;
@@ -170,22 +160,20 @@ public:
         return max;
     }
 
-    Node *select(Prng &generator) {
+    Node *select() {
         size_t num_max = 0;
-        Node<board_size> *anymax = first_child;
+        Node* anymax = &children[0];
         double max = std::numeric_limits<double>::lowest();
         for (auto i = 0; i < num_children; ++i) {
-            Node<board_size> *child = first_child + i;
-            double child_uct = child->operator()();
+            Node&child = children[i];
+            double child_uct = child();
             if (child_uct > max) {
-                anymax = first_child + i;
+                anymax =&child;
                 max = child_uct;
             }
         }
 
         return anymax;
-
-
     }
 
     void back_up(Color result, Color turn, bit_pattern<board_size> &WP, bit_pattern<board_size> &BP) {
@@ -196,7 +184,7 @@ public:
                 if (turn == BLACK && current->num_children > 0) {
                     for (auto sq: BP) {
                         for (auto i = 0; i < current->num_children; ++i) {
-                            auto &child = current->first_child[i];
+                            auto &child = current->children[i];
                             if (child.move == sq) {
                                 child.q_rave += -reward;
                                 child.num_rave += 1;
@@ -207,7 +195,7 @@ public:
                 } else if (turn == WHITE && current->num_children > 0) {
                     for (auto sq: WP) {
                         for (auto i = 0; i < current->num_children; ++i) {
-                            auto &child = current->first_child[i];
+                            auto &child = current->children[i];
                             if (child.move == sq) {
                                 child.q_rave += -reward;
                                 child.num_rave += 1;

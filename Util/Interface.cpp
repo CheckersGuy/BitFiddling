@@ -6,7 +6,6 @@
 
 Interface::Interface() {
     search.set_max_tree_size(100000000);
-    NodeAllocator<11>::get_instance().init();
 }
 
 void Interface::loop() {
@@ -58,7 +57,6 @@ void Interface::send_new_move(size_t move) {
 }
 
 void Interface::search_position(int max_time, int max_nodes) {
-    NodeAllocator<11>::get_instance().reset();
     search.init();
     search.set_max_nodes(max_nodes);
     search.set_max_time(max_time);
