@@ -12,6 +12,7 @@
 #include <immintrin.h>
 #include <iostream>
 #include <memory>
+#include <type_traits>
 
 uint64_t get_left_mask(size_t size) {
   size_t left_over = size % 64ull;
@@ -57,6 +58,8 @@ struct BitSetIterator {
   bool operator!=(const BitSetIterator &other) const;
 };
 
+struct Bit;
+
 struct bit_pattern {
   std::unique_ptr<uint64_t[]> fields;
   size_t num_bits;
@@ -95,6 +98,13 @@ struct bit_pattern {
     fields[field_index] |= 1ull << sub_index;
   }
 
+  void set_bit(size_t idx, bool value) {
+    const uint64_t temp = value;
+    size_t field_index = idx / 64ull;
+    size_t sub_index = idx & (63ull);
+    fields[field_index] |= temp << sub_index;
+  }
+
   void clear_bit(size_t idx) {
     size_t field_index = idx / 64ull;
     size_t sub_index = idx & (63ull);
@@ -106,6 +116,8 @@ struct bit_pattern {
     size_t sub_index = idx & (63ull);
     return (fields[field_index] & (1ull << sub_index)) != 0;
   }
+
+  Bit operator[](size_t index);
 
   friend bit_pattern operator&(bit_pattern one, bit_pattern two) {
     bit_pattern next(one.num_bits);
@@ -158,17 +170,6 @@ struct bit_pattern {
     next.fields[last] = ~(other.fields[last]);
     next.fields[last] &= other.LEFT_MASK;
     return next;
-  }
-
-  void print() {
-    for (auto i = 0; i < num_bits; ++i) {
-      if (is_set(i)) {
-        std::cout << "1";
-      } else {
-        std::cout << "0";
-      }
-    }
-    std::cout << "\n";
   }
 
   size_t count_bits() {
@@ -258,8 +259,7 @@ struct bit_pattern {
 
   BitSetIterator end() const {
     BitSetIterator next(*this);
-    next.field_index = num_fields - 1;
-    next.mask = 0;
+    next.index = num_bits;
     return next;
   }
 
@@ -287,47 +287,52 @@ struct bit_pattern {
   }
 };
 
-bool BitSetIteartor::operator*() const { return bits.is_set(index); }
+struct Bit {
+  bit_pattern &ref;
+  size_t index;
+  // to be continued
+
+  Bit(bit_pattern &other, size_t index);
+
+  Bit &operator=(bool value);
+
+  template <typename T> operator T() {
+    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
+    return (ref.is_set(index) ? 1 : 0);
+  }
+};
+
+bool BitSetIterator::operator*() const { return bits.is_set(index); }
 
 BitSetIterator::BitSetIterator(const bit_pattern &pattern) : bits(pattern) {
-  field_index = bits.num_fields;
-  for (auto i = 0; i < pattern.num_fields; ++i) {
-    field_index = i;
-    if (pattern.fields[i] != 0) {
-      break;
-    }
-  }
-  mask = pattern.fields[field_index];
+  index = 0;
 }
 
 BitSetIterator &BitSetIterator::operator++() {
   // removes the lsb
-  mask &= mask - 1;
-  if (mask == 0 && field_index < bits.num_fields - 1) {
-    field_index++;
-    mask = bits.fields[field_index];
-  }
+  index++;
   return *this;
 }
 
 BitSetIterator BitSetIterator::operator++(int) {
   BitSetIterator next(*this);
-  mask &= mask - 1;
-  if (mask == 0 && field_index < bits.num_fields - 1) {
-    field_index++;
-    mask = bits.fields[field_index];
-  }
+  next.index++;
   return next;
 }
 
 bool BitSetIterator::operator==(const BitSetIterator &other) const {
-  return (bits == other.bits && (field_index == other.field_index) &&
-          (mask == other.mask));
+  return (bits == other.bits && (index == other.index));
 }
 
 bool BitSetIterator::operator!=(const BitSetIterator &other) const {
-  return (bits != other.bits || field_index != other.field_index ||
-          mask != other.mask);
+  return (bits != other.bits || index != other.index);
+}
+
+Bit::Bit(bit_pattern &other, size_t index) : ref(other) { this->index = index; }
+
+Bit &Bit::operator=(bool value) {
+  ref.set_bit(index, value);
+  return *this;
 }
 
 #endif // READING_BITPATTERN_H
