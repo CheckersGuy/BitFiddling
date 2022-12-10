@@ -13,6 +13,7 @@
 #include <iostream>
 #include <memory>
 #include <type_traits>
+#include <x86intrin.h>
 
 uint64_t get_left_mask(size_t size) {
   size_t left_over = size % 64ull;
@@ -58,6 +59,47 @@ struct BitSetIterator {
   bool operator!=(const BitSetIterator &other) const;
 };
 
+struct OneIterator {
+  const bit_pattern &bits;
+  size_t field_index;
+  uint64_t maske;
+
+  // std::array<uint64_t, get_num_fields(board_size)> fields{0};
+
+  using iterator_category = std::forward_iterator_tag;
+  using difference_type = std::ptrdiff_t;
+  using value_type = size_t;
+  using pointer = value_type *;
+  using reference = value_type &;
+
+  // stuff goes here
+
+  OneIterator(const OneIterator &other);
+
+  OneIterator(const bit_pattern &pattern);
+
+  OneIterator &operator++();
+
+  OneIterator operator++(int);
+
+  size_t operator*() const;
+
+  bool operator==(const OneIterator &other) const;
+
+  bool operator!=(const OneIterator &other) const;
+};
+
+// an Adapter on a bitset;
+
+struct OneAdapter {
+  bit_pattern &bits;
+
+  OneAdapter(bit_pattern &pattern);
+
+  OneIterator begin();
+  OneIterator end();
+};
+
 struct Bit;
 
 struct bit_pattern {
@@ -92,30 +134,13 @@ struct bit_pattern {
     return *this;
   }
 
-  void set_bit(size_t idx) {
-    size_t field_index = idx / 64ull;
-    size_t sub_index = idx & (63ull);
-    fields[field_index] |= 1ull << sub_index;
-  }
+  void set_bit(size_t idx);
 
-  void set_bit(size_t idx, bool value) {
-    const uint64_t temp = value;
-    size_t field_index = idx / 64ull;
-    size_t sub_index = idx & (63ull);
-    fields[field_index] |= temp << sub_index;
-  }
+  void set_bit(size_t idx, bool value);
 
-  void clear_bit(size_t idx) {
-    size_t field_index = idx / 64ull;
-    size_t sub_index = idx & (63ull);
-    fields[field_index] &= ~(1ull << sub_index);
-  }
+  void clear_bit(size_t idx);
 
-  bool is_set(size_t idx) const {
-    size_t field_index = idx / 64ull;
-    size_t sub_index = idx & (63ull);
-    return (fields[field_index] & (1ull << sub_index)) != 0;
-  }
+  bool is_set(size_t idx) const;
 
   Bit operator[](size_t index);
 
@@ -130,15 +155,7 @@ struct bit_pattern {
     return next;
   }
 
-  bit_pattern &operator&=(bit_pattern &other) {
-    const size_t last = other.get_num_fields() - 1;
-    for (auto i = 0; i < last; ++i) {
-      fields[i] = (fields[i] & other.fields[i]);
-    }
-    fields[last] = (fields[last] & other.fields[last]);
-    fields[last] &= LEFT_MASK;
-    return *this;
-  }
+  bit_pattern &operator&=(bit_pattern &other);
 
   friend bit_pattern operator|(bit_pattern one, bit_pattern two) {
     bit_pattern next(one.num_bits);
@@ -151,15 +168,7 @@ struct bit_pattern {
     return next;
   }
 
-  bit_pattern &operator|=(bit_pattern &other) {
-    const size_t last = other.get_num_fields() - 1;
-    for (auto i = 0; i < last; ++i) {
-      fields[i] = (fields[i] | other.fields[i]);
-    }
-    fields[last] = (fields[last] | other.fields[last]);
-    fields[last] &= LEFT_MASK;
-    return *this;
-  }
+  bit_pattern &operator|=(bit_pattern &other);
 
   friend bit_pattern operator~(bit_pattern other) {
     bit_pattern next(other.num_bits);
@@ -172,96 +181,18 @@ struct bit_pattern {
     return next;
   }
 
-  size_t count_bits() {
-    size_t count = 0;
-    for (auto i = 0; i < num_fields - 1; ++i) {
-      count += __builtin_popcountll(fields[i]);
-    }
-    count += __builtin_popcountll(fields[num_fields - 1] & LEFT_MASK);
-    return count;
-  }
+  size_t count_bits();
+  size_t get_bit_index(int n);
 
-  size_t get_bit_index(int n) {
-    // returns the index of the nth bith
-    size_t total_count = 0;
-    size_t field_index = 0;
-    for (auto i = 0; i < num_fields; ++i) {
-      // figuring out which bucket this bit is in
-      auto count = __builtin_popcountll(fields[i]);
-      total_count += count;
-      if (total_count >= n) {
-        field_index = i;
-        break;
-      }
-    }
-    const size_t local_index = n - total_count;
-  }
+  bool operator==(const bit_pattern &other) const;
 
-  template <typename Prng>
-  size_t get_random_bit(Prng &generator, size_t num_bits) {
-    // REQUIRES UNIT TESTING
-    // This function needs to be reworked
-    uint64_t rand = generator();
-    uint64_t index = rand % num_bits;
-    uint64_t local_index = index;
-    int field_index = 0;
-    size_t count = 0;
-    for (auto i = 0; i < num_fields; ++i) {
-      size_t l_empt = fields[i];
-      size_t num = __builtin_popcountll(l_empt);
-      count += num;
-      if (count >= index + 1) {
-        field_index = i;
-        break;
-      }
-      local_index -= num;
-    }
-    uint64_t empty_squares = fields[field_index];
-    uint64_t index_mask = 1ull << local_index;
-    uint64_t empty_square = _pdep_u64(index_mask, empty_squares);
-    return _tzcnt_u64(empty_square) + 64ull * field_index;
-  }
+  bool operator!=(const bit_pattern &other) const;
 
-  template <typename Prng> size_t get_random_bit(Prng &generator) {
-    // above version is for when we are incrementally making moves
-    // so we can keep track of the number of 1 bits without computing them
-    return get_random_bit(generator, count_bits());
-  }
+  bool is_empty();
 
-  bool operator==(const bit_pattern &other) const {
-    for (auto i = 0; i < num_fields; ++i) {
-      if (fields[i] != other.fields[i])
-        return false;
-    }
-    return true;
-  }
+  BitSetIterator begin() const;
 
-  bool operator!=(const bit_pattern &other) const {
-    for (auto i = 0; i < num_fields; ++i) {
-      if (fields[i] != other.fields[i])
-        return true;
-    }
-    return false;
-  }
-
-  bool is_empty() {
-    for (auto i = 0; i < num_fields - 1; ++i) {
-      if (fields[i] != 0)
-        return false;
-    }
-    return (fields[num_fields - 1] & LEFT_MASK) == 0;
-  }
-
-  BitSetIterator begin() const {
-    BitSetIterator next(*this);
-    return next;
-  }
-
-  BitSetIterator end() const {
-    BitSetIterator next(*this);
-    next.index = num_bits;
-    return next;
-  }
+  BitSetIterator end() const;
 
   friend std::ofstream &operator<<(std::ofstream &stream,
                                    const bit_pattern &pat) {
@@ -300,7 +231,125 @@ struct Bit {
     static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
     return (ref.is_set(index) ? 1 : 0);
   }
+
+  friend std::ostream &operator<<(std::ostream &stream, Bit bit) {
+    bool value = (bit.ref.is_set(bit.index) ? 1 : 0);
+    stream << value;
+    return stream;
+  }
 };
+
+// class definition ends here
+
+void bit_pattern::set_bit(size_t idx) {
+  size_t field_index = idx / 64ull;
+  size_t sub_index = idx & (63ull);
+  fields[field_index] |= 1ull << sub_index;
+}
+
+void bit_pattern::set_bit(size_t idx, bool value) {
+  const uint64_t temp = value;
+  size_t field_index = idx / 64ull;
+  size_t sub_index = idx & (63ull);
+  fields[field_index] |= temp << sub_index;
+}
+
+void bit_pattern::clear_bit(size_t idx) {
+  size_t field_index = idx / 64ull;
+  size_t sub_index = idx & (63ull);
+  fields[field_index] &= ~(1ull << sub_index);
+}
+
+bool bit_pattern::is_set(size_t idx) const {
+  size_t field_index = idx / 64ull;
+  size_t sub_index = idx & (63ull);
+  return (fields[field_index] & (1ull << sub_index)) != 0;
+}
+
+Bit bit_pattern::operator[](size_t index) {
+  Bit bit(*this, index);
+  return bit;
+}
+
+bit_pattern &bit_pattern::operator&=(bit_pattern &other) {
+  const size_t last = other.get_num_fields() - 1;
+  for (auto i = 0; i < last; ++i) {
+    fields[i] = (fields[i] & other.fields[i]);
+  }
+  fields[last] = (fields[last] & other.fields[last]);
+  fields[last] &= LEFT_MASK;
+  return *this;
+}
+
+bit_pattern &bit_pattern::operator|=(bit_pattern &other) {
+  const size_t last = other.get_num_fields() - 1;
+  for (auto i = 0; i < last; ++i) {
+    fields[i] = (fields[i] | other.fields[i]);
+  }
+  fields[last] = (fields[last] | other.fields[last]);
+  fields[last] &= LEFT_MASK;
+  return *this;
+}
+
+size_t bit_pattern::count_bits() {
+  size_t count = 0;
+  for (auto i = 0; i < num_fields - 1; ++i) {
+    count += __builtin_popcountll(fields[i]);
+  }
+  count += __builtin_popcountll(fields[num_fields - 1] & LEFT_MASK);
+  return count;
+}
+
+size_t bit_pattern::get_bit_index(int n) {
+  // returns the index of the nth bith
+  size_t total_count = 0;
+  size_t field_index = 0;
+  size_t count = 0;
+  for (auto i = 0; i < num_fields; ++i) {
+    // figuring out which bucket this bit is in
+    count = __builtin_popcountll(fields[i]);
+    if (total_count + count >= n) {
+      field_index = i;
+      break;
+    }
+  }
+  return _tzcnt_u64(fields[field_index]) + 64ull * field_index;
+}
+
+bool bit_pattern::operator==(const bit_pattern &other) const {
+  for (auto i = 0; i < num_fields; ++i) {
+    if (fields[i] != other.fields[i])
+      return false;
+  }
+  return true;
+}
+
+bool bit_pattern::operator!=(const bit_pattern &other) const {
+  for (auto i = 0; i < num_fields; ++i) {
+    if (fields[i] != other.fields[i])
+      return true;
+  }
+  return false;
+}
+
+bool bit_pattern::is_empty() {
+  for (auto i = 0; i < num_fields - 1; ++i) {
+    if (fields[i] != 0)
+      return false;
+  }
+  return (fields[num_fields - 1] & LEFT_MASK) == 0;
+}
+
+BitSetIterator bit_pattern::begin() const {
+  BitSetIterator next(*this);
+  return next;
+}
+
+BitSetIterator bit_pattern::end() const {
+  BitSetIterator next(*this);
+  next.index = num_bits;
+  return next;
+}
 
 bool BitSetIterator::operator*() const { return bits.is_set(index); }
 
@@ -333,6 +382,63 @@ Bit::Bit(bit_pattern &other, size_t index) : ref(other) { this->index = index; }
 Bit &Bit::operator=(bool value) {
   ref.set_bit(index, value);
   return *this;
+}
+
+OneIterator::OneIterator(const OneIterator &other) : bits(other.bits) {
+  field_index = other.field_index;
+  maske = other.maske;
+}
+
+OneIterator::OneIterator(const bit_pattern &pattern) : bits(pattern) {
+  maske = bits.fields[0];
+  field_index = 0;
+  while ((maske == 0) && field_index < bits.num_fields) {
+    // getting to the next non_zero mask
+    maske = bits.fields[++field_index];
+  };
+}
+
+OneIterator &OneIterator::operator++() {
+  // removing the lsb
+  maske &= maske - 1;
+  while ((maske == 0 && field_index < bits.num_fields)) {
+    // getting to the next non_zero mask
+    maske = bits.fields[++field_index];
+  };
+
+  return *this;
+}
+
+OneIterator OneIterator::operator++(int) {
+  OneIterator other(*this);
+  ++(*this);
+  return other;
+}
+
+size_t OneIterator::operator*() const {
+  return _tzcnt_u64(maske) + field_index * 64;
+}
+
+bool OneIterator::operator==(const OneIterator &other) const {
+  return (field_index == other.field_index && maske == other.maske);
+}
+
+bool OneIterator::operator!=(const OneIterator &other) const {
+  return (field_index != other.field_index || maske != other.maske);
+}
+
+OneAdapter::OneAdapter(bit_pattern &pattern) : bits(pattern) {}
+
+OneIterator OneAdapter::begin() {
+  OneIterator beg(bits);
+  return beg;
+}
+
+OneIterator OneAdapter::end() {
+  OneIterator end(bits);
+  end.field_index = bits.num_fields;
+  end.maske = 0;
+  return end;
 }
 
 #endif // READING_BITPATTERN_H
