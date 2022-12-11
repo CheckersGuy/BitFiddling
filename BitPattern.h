@@ -182,6 +182,7 @@ struct bit_pattern {
   }
 
   size_t count_bits();
+
   size_t get_bit_index(int n);
 
   bool operator==(const bit_pattern &other) const;
@@ -193,6 +194,8 @@ struct bit_pattern {
   BitSetIterator begin() const;
 
   BitSetIterator end() const;
+
+  size_t size() const;
 
   friend std::ofstream &operator<<(std::ofstream &stream,
                                    const bit_pattern &pat) {
@@ -300,6 +303,8 @@ size_t bit_pattern::count_bits() {
   return count;
 }
 
+size_t bit_pattern::size() const { return num_bits; }
+
 size_t bit_pattern::get_bit_index(int n) {
   // returns the index of the nth bith
   size_t total_count = 0;
@@ -392,7 +397,7 @@ OneIterator::OneIterator(const OneIterator &other) : bits(other.bits) {
 OneIterator::OneIterator(const bit_pattern &pattern) : bits(pattern) {
   maske = bits.fields[0];
   field_index = 0;
-  while ((maske == 0) && field_index < bits.num_fields) {
+  while (maske == 0 && field_index + 1 < bits.num_fields) {
     // getting to the next non_zero mask
     maske = bits.fields[++field_index];
   };
@@ -401,7 +406,8 @@ OneIterator::OneIterator(const bit_pattern &pattern) : bits(pattern) {
 OneIterator &OneIterator::operator++() {
   // removing the lsb
   maske &= maske - 1;
-  while ((maske == 0 && field_index < bits.num_fields)) {
+
+  while (maske == 0 && field_index + 1 < bits.num_fields) {
     // getting to the next non_zero mask
     maske = bits.fields[++field_index];
   };
@@ -436,7 +442,7 @@ OneIterator OneAdapter::begin() {
 
 OneIterator OneAdapter::end() {
   OneIterator end(bits);
-  end.field_index = bits.num_fields;
+  end.field_index = bits.num_fields - 1;
   end.maske = 0;
   return end;
 }

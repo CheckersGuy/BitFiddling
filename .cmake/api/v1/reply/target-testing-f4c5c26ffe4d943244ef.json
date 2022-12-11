@@ -36,6 +36,9 @@
 			[
 				{
 					"fragment" : "-Ofast -mtune=native -march=native -flto -ffat-lto-objects -fuse-linker-plugin"
+				},
+				{
+					"fragment" : "-std=gnu++20"
 				}
 			],
 			"language" : "CXX",
@@ -45,7 +48,7 @@
 				[
 					1
 				],
-				"standard" : "17"
+				"standard" : "20"
 			},
 			"sourceIndexes" : 
 			[
