@@ -15,16 +15,17 @@ int main(int argl, const char **argc) {
   inter.loop();
  return 0;
 */
-
-  Search<9> search;
-  search.set_max_tree(1000000);
-  search.init();
+  /*
+    Search<9> searchtest;
+    searchtest.set_max_tree_size(1000000);
+    searchtest.init();
+    searchtest.set_max_nodes(10);
+    searchtest.search();
+    */
 
   // Thats not going to be easy to fix
 
-  return 0;
-
-  constexpr size_t board_size = 9;
+  constexpr size_t board_size = 11;
   Search<board_size> search;
   search.set_max_tree_size(100000000);
   for (auto i = 0; i < board_size * board_size; ++i) {
@@ -32,11 +33,11 @@ int main(int argl, const char **argc) {
     if (search.board.get_winner() != EMPTY)
       break;
     if (search.board.get_position().color == BLACK) {
-      search.max_time = 1200;
+      search.max_time = 100000;
       search.set_max_nodes(1000000000);
 
     } else {
-      search.max_time = 1200;
+      search.max_time = 100000;
       search.set_max_nodes(1000000000);
     }
 

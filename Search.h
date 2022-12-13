@@ -10,6 +10,7 @@
 #include "Prng.h"
 #include <chrono>
 #include <memory>
+#include <random>
 
 template <size_t board_size> class Search {
 
@@ -21,7 +22,7 @@ public:
   size_t max_tree_size;
   size_t nodes_in_tree{0};
   std::unique_ptr<Node<board_size>> root;
-  Prng rand_source;
+  std::mt19937_64 rand_source;
 
 public:
   Search()
@@ -73,12 +74,14 @@ public:
 
     bit_pattern before_WP = iter_board.get_position().WP;
     bit_pattern before_BP = iter_board.get_position().BP;
+
     Color result = iter_board.play_out(rand_source);
     after_WP = iter_board.get_position().WP;
     after_BP = iter_board.get_position().BP;
 
     after_WP = after_WP & (~before_WP);
     after_BP = after_BP & (~before_BP);
+
     current->back_up(result, mover, after_WP, after_BP);
 
     num_iterations++;

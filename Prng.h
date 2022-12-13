@@ -8,22 +8,21 @@
 #include <limits>
 class Prng {
 private:
-    uint64_t seed;
+  uint64_t seed;
+
 public:
-    using result_type = uint64_t;
-    using value_type = uint64_t;
+  using result_type = uint64_t;
+  using value_type = uint64_t;
 
-    Prng(value_type seed) : seed(seed) {}
+  Prng(value_type seed) : seed(seed) {}
 
-    uint64_t operator()();
+  uint64_t operator()();
 
-    uint64_t getSeed() const;
+  uint64_t getSeed() const;
 
-    uint64_t min() const;
+  static constexpr uint64_t min();
 
-    uint64_t max() const;
-
+  static constexpr uint64_t max();
 };
 
-
-#endif //READING_PRNG_H
+#endif // READING_PRNG_H

@@ -61,7 +61,7 @@ template <size_t board_size> struct Position {
 
   inline uint64_t get_empty_squares(int index) {
     const uint64_t squares = BP.fields[index] | WP.fields[index];
-    if (index == BP.size() - 1) {
+    if (index == BP.get_num_fields() - 1) {
       return (~squares) & get_left_mask(board_size * board_size);
     }
     return (~squares);
@@ -79,31 +79,6 @@ template <size_t board_size> struct Position {
     result[5] = hex_point - ((board_size - 1));
 
     return result;
-  }
-
-  inline size_t get_random_empty(Prng &generator) {
-    // This function needs to be reworked
-    uint64_t rand = generator();
-    uint64_t index = rand % num_empty;
-
-    uint64_t local_index = index;
-    int field_index = 0;
-    size_t count = 0;
-    for (auto i = 0; i < BP.size(); ++i) {
-      size_t l_empt = get_empty_squares(i);
-      size_t num = __builtin_popcountll(l_empt);
-      count += num;
-      if (count >= index + 1) {
-        field_index = i;
-        break;
-      }
-      local_index -= num;
-    }
-
-    uint64_t empty_squares = get_empty_squares(field_index);
-    uint64_t index_mask = 1ull << local_index;
-    uint64_t empty_square = _pdep_u64(index_mask, empty_squares);
-    return _tzcnt_u64(empty_square) + 64ull * field_index;
   }
 
   void print() {

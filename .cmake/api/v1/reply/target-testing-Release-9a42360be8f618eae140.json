@@ -24,7 +24,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 6,
+				"line" : 7,
 				"parent" : 0
 			}
 		]
@@ -35,7 +35,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-Ofast -mtune=native -march=native -flto -ffat-lto-objects -fuse-linker-plugin"
+					"fragment" : "-Ofast -mtune=native -march=native -flto -ffat-lto-objects -fuse-linker-plugin -O3 -DNDEBUG"
 				},
 				{
 					"fragment" : "-std=gnu++20"
@@ -62,7 +62,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "-Ofast -mtune=native -march=native -flto -ffat-lto-objects -fuse-linker-plugin",
+				"fragment" : "-Ofast -mtune=native -march=native -flto -ffat-lto-objects -fuse-linker-plugin -O3 -DNDEBUG",
 				"role" : "flags"
 			},
 			{

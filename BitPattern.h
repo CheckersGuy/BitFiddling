@@ -121,16 +121,19 @@ struct bit_pattern {
     num_fields = other.num_fields;
     num_bits = other.num_bits;
     fields = std::make_unique<uint64_t[]>(other.num_fields);
-    std::memcpy(fields.get(), other.fields.get(),
-                sizeof(uint64_t) * num_fields);
+    for (auto i = 0; i < num_fields; ++i) {
+      fields[i] = other.fields[i];
+    }
   }
 
   bit_pattern &operator=(const bit_pattern &other) {
     num_fields = other.num_fields;
     num_bits = other.num_bits;
     fields = std::make_unique<uint64_t[]>(num_fields);
-    std::memcpy(fields.get(), other.fields.get(),
-                sizeof(uint64_t) * num_fields);
+    for (auto i = 0; i < num_fields; ++i) {
+      fields[i] = other.fields[i];
+    }
+
     return *this;
   }
 
@@ -313,12 +316,17 @@ size_t bit_pattern::get_bit_index(int n) {
   for (auto i = 0; i < num_fields; ++i) {
     // figuring out which bucket this bit is in
     count = __builtin_popcountll(fields[i]);
-    if (total_count + count >= n) {
+    if (total_count + count > n) {
       field_index = i;
       break;
     }
+    total_count += count;
   }
-  return _tzcnt_u64(fields[field_index]) + 64ull * field_index;
+  auto local_index = n - total_count;
+  uint64_t index_mask = 1ull << local_index;
+  uint64_t empty_square = _pdep_u64(index_mask, fields[field_index]);
+
+  return _tzcnt_u64(empty_square) + 64ull * field_index;
 }
 
 bool bit_pattern::operator==(const bit_pattern &other) const {

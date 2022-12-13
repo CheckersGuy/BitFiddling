@@ -101,7 +101,7 @@ public:
   void expand(Position<board_size> &pos) {
     auto empty_squares = ~(pos.BP | pos.WP);
     children = std::make_unique<Node<board_size>[]>(pos.get_num_empty());
-    for (auto sq : empty_squares) {
+    for (auto sq : OneAdapter(empty_squares)) {
       children[num_children].move = sq;
       children[num_children].parent = this;
       num_children++;
@@ -142,7 +142,6 @@ public:
     float reward = ((result == turn) ? -1.0f : 1.0f);
     Node *current = this;
     while (current != nullptr) {
-
       if (turn == BLACK && current->num_children > 0) {
         for (auto sq : OneAdapter(BP)) {
           for (auto i = 0; i < current->num_children; ++i) {
