@@ -98,7 +98,7 @@ public:
 
   size_t get_num_children() { return num_children; }
 
-  void expand(Position<board_size> &pos) {
+  void expand(Position &pos) {
     auto empty_squares = ~(pos.BP | pos.WP);
     children = std::make_unique<Node<board_size>[]>(pos.get_num_empty());
     for (auto sq : OneAdapter(empty_squares)) {

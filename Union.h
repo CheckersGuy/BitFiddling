@@ -8,22 +8,18 @@
 #include <immintrin.h>
 #include <array>
 #include "types.h"
-
-template<size_t board_size>
+#include <memory>
 class Union {
 public:
-    static constexpr size_t NUM_SETS = board_size * board_size + 4;
-    /* std::array<SquareType<board_size>, NUM_SETS> indices;
-     std::array<SquareType<board_size>, NUM_SETS> sizes;*/
-    size_t size;
+    const size_t NUM_SETS;
+    const size_t size;
     std::unique_ptr<uint16_t[]> indices;
     std::unique_ptr<uint16_t[]> sizes;
 
 
 public:
 
-    Union() {
-        size = board_size * board_size + 4;
+    Union(size_t size): size(size),NUM_SETS(size*size+4) {
         indices = std::make_unique<uint16_t[]>(size);
         sizes = std::make_unique<uint16_t[]>(size);
         for (size_t i = 0; i < size; ++i) {
@@ -32,8 +28,7 @@ public:
         }
     }
 
-    Union(const Union &other) {
-        size = other.size;
+    Union(const Union &other):size(other.size),NUM_SETS(other.size*other.size+4) {
         indices = std::make_unique<uint16_t[]>(size);
         sizes = std::make_unique<uint16_t[]>(size);
         for (size_t i = 0; i < size; ++i) {
@@ -43,7 +38,6 @@ public:
     }
 
     Union &operator=(const Union &other) {
-        size = other.size;
         indices = std::make_unique<uint16_t[]>(size);
         sizes = std::make_unique<uint16_t[]>(size);
         for (size_t i = 0; i < size; ++i) {
@@ -82,6 +76,14 @@ public:
 
     bool in_same_set(size_t idx, size_t idy) {
         return root(idx) == root(idy);
+    }
+
+    void clear(){
+       for (size_t i = 0; i < size; ++i) {
+            indices[i] = i;
+            sizes[i] = 1;
+        }
+
     }
 
 };

@@ -22,7 +22,7 @@ public:
   size_t max_tree_size;
   size_t nodes_in_tree{0};
   std::unique_ptr<Node<board_size>> root;
-  std::mt19937_64 rand_source;
+  Prng rand_source;
 
 public:
   Search()
@@ -65,7 +65,9 @@ public:
         nodes_in_tree < max_tree_size) {
       current->expand(iter_board.get_position());
       nodes_in_tree += iter_board.get_position().get_num_empty();
-      auto rand_index = rand_source() % current->get_num_children();
+      std::uniform_int_distribution<int> distrib(
+          0, current->get_num_children() - 1);
+      auto rand_index = distrib(rand_source);
       current = (*current)[rand_index];
       iter_board.make_move(current->get_move());
     }

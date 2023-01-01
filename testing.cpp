@@ -1,9 +1,12 @@
 #include "BitPattern.h"
+#include "Prng.h"
+#include "Util/ThreadPool.h"
 #include "types.h"
 #include <iostream>
 #include <random>
-int main(int argl, const char **argc) {
+#include <thread>
 
+void test_patterns() {
   std::cout << "Doing some testing to fix my Bitset class" << std::endl;
   bit_pattern pattern(150);
   pattern[121] = 1;
@@ -22,9 +25,30 @@ int main(int argl, const char **argc) {
   std::cout << "Index of the " << input << "'s one bit at:" << index
             << std::endl;
 
-  for (auto value : OneAdapter(pattern)) {
-    std::cout << value << std::endl;
-  }
+  // Testing some random number generation
+
+  Prng generator(231231ull);
+  std::uniform_int_distribution<int> distrib(0, 100);
+
+  auto rand_value = distrib(generator);
+
+  std::cout << "Random: " << rand_value << std::endl;
+}
+
+void test_pool() {
+  ThreadPool pool(2);
+  auto task = pool.submit([]() { std::cout << "Test" << std::endl; });
+  auto task2 = pool.submit([]() {
+    for (auto i = 0; i < 10; ++i) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::cout << "Slept: " << i << std::endl;
+    }
+  });
+  task.get();
+}
+
+int main(int argl, const char **argc) {
+  test_pool();
 
   return 0;
 }

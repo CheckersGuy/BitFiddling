@@ -54,7 +54,6 @@ struct BitSetIterator {
   bool operator*() const;
 
   bool operator==(const BitSetIterator &other) const;
-  // std::array<uint64_t, get_num_fields(board_size)> fields{0};
 
   bool operator!=(const BitSetIterator &other) const;
 };
@@ -215,7 +214,6 @@ struct bit_pattern {
   friend std::ostream &operator<<(std::ostream &stream,
                                   const bit_pattern &pat) {
 
-    std::cout << "Test" << std::endl;
     for (auto bit : pat) {
       auto token = (bit == 0) ? "0" : "1";
       stream << token;
@@ -243,9 +241,31 @@ struct Bit {
     stream << value;
     return stream;
   }
+
+  template <typename T> bool operator==(T &&other) {
+    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
+    bool my_value = (ref.is_set(index) ? 1 : 0);
+    return my_value == other;
+  }
+  template <typename T> bool operator!=(T &&other) {
+    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
+    bool my_value = (ref.is_set(index) ? 1 : 0);
+    return my_value != other;
+  }
+
+  bool operator==(const Bit &other);
+  bool operator!=(const Bit &other);
 };
 
 // class definition ends here
+
+bool Bit::operator==(const Bit &other) {
+  bool my_value = (ref.is_set(index) ? 1 : 0);
+  bool other_value = (other.ref.is_set(other.index) ? 1 : 0);
+  return my_value == other_value;
+}
+
+bool Bit::operator!=(const Bit &other) { return !((*this) == other); }
 
 void bit_pattern::set_bit(size_t idx) {
   size_t field_index = idx / 64ull;
@@ -257,6 +277,8 @@ void bit_pattern::set_bit(size_t idx, bool value) {
   const uint64_t temp = value;
   size_t field_index = idx / 64ull;
   size_t sub_index = idx & (63ull);
+  // clearing out the bit first
+  fields[field_index] &= ~(1ull << sub_index);
   fields[field_index] |= temp << sub_index;
 }
 

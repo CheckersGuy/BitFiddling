@@ -25,7 +25,7 @@ int main(int argl, const char **argc) {
 
   // Thats not going to be easy to fix
 
-  constexpr size_t board_size = 11;
+  constexpr size_t board_size = 9;
   Search<board_size> search;
   search.set_max_tree_size(100000000);
   for (auto i = 0; i < board_size * board_size; ++i) {
@@ -33,11 +33,11 @@ int main(int argl, const char **argc) {
     if (search.board.get_winner() != EMPTY)
       break;
     if (search.board.get_position().color == BLACK) {
-      search.max_time = 100000;
+      search.max_time = 10000;
       search.set_max_nodes(1000000000);
 
     } else {
-      search.max_time = 100000;
+      search.max_time = 300000;
       search.set_max_nodes(1000000000);
     }
 
@@ -50,7 +50,7 @@ int main(int argl, const char **argc) {
     std::cout << "NumIterations: " << search.num_iterations << std::endl;
     auto action = search.get_best_action();
     search.board.make_move(action);
-    search.board.get_position().print();
+    std::cout << search.board.get_position() << std::endl;
     std::cout << std::endl;
     std::cout << "Action: " << action << std::endl;
     std::cout << search.board.get_position().get_num_empty() << std::endl;

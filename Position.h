@@ -13,18 +13,19 @@
 #include <immintrin.h>
 #include <iostream>
 #include <ostream>
-
-template <size_t board_size> struct Position {
+#include <iomanip>
+struct Position {
+  const size_t board_size;
   bit_pattern BP;
   bit_pattern WP;
   Color color{BLACK};
 
-  Position() : BP(board_size * board_size), WP(board_size * board_size) {}
+  Position(const size_t size):board_size(size),  BP(board_size * board_size), WP(board_size * board_size) {}
 
   size_t num_empty{board_size * board_size};
 
-  static Position get_empty_position() {
-    Position pos;
+  static Position get_empty_position(size_t size) {
+    Position pos(size);
     return pos;
   }
 
@@ -69,7 +70,7 @@ template <size_t board_size> struct Position {
 
   inline Color operator[](int index) { return get_square(index); }
 
-  std::array<size_t, 6> get_neighbours(SquareType<board_size> hex_point) {
+  constexpr std::array<size_t, 6> get_neighbours(uint16_t hex_point) {
     std::array<size_t, 6> result{};
     result[0] = hex_point - board_size;
     result[1] = hex_point - 1;
@@ -81,52 +82,30 @@ template <size_t board_size> struct Position {
     return result;
   }
 
-  void print() {
-    for (auto i = 0; i < board_size; ++i) {
-      for (auto p = 0; p < i; ++p) {
-        std::cout << " ";
-      }
-      std::cout << "\\";
-      std::cout << " ";
-      for (auto k = 0; k < board_size; ++k) {
-        if (BP.is_set(board_size * i + k)) {
-          std::cout << "B";
-        } else if (WP.is_set(board_size * i + k)) {
-          std::cout << "W";
-        } else {
-          std::cout << ".";
-        }
-        std::cout << " ";
-      }
-      std::cout << "\\";
-      std::cout << "\n";
-    }
-  }
-
-  Color get_mover() { return color; }
+   Color get_mover() { return color; }
 
   friend std::ostream &operator<<(std::ostream &stream, const Position &other) {
 
-    for (auto i = 0; i < board_size; ++i) {
+    for (auto i = 0; i < other.board_size; ++i) {
       for (auto p = 0; p < i; ++p) {
         stream << " ";
       }
       stream << "\\";
       stream << " ";
-      for (auto k = 0; k < board_size; ++k) {
-        if (other.is_set(board_size * i + k)) {
+      for (auto k = 0; k < other.board_size; ++k) {
+        if (other.BP.is_set(other.board_size * i + k)) {
           stream << "B";
-        } else if (other.is_set(board_size * i + k)) {
-          stream << "W";
+        } else if (other.WP.is_set(other.board_size * i + k)) {
+          stream <<"W";
         } else {
           stream << ".";
         }
-        stream << " ";
+        stream <<" ";
       }
       stream << "\\";
-      stream << "\n";
-      return stream;
+      stream<<"\n";
     }
+    return stream;
   }
 
   friend std::ofstream &operator<<(std::ofstream &stream, const Position &pos) {

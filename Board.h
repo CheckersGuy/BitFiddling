@@ -6,18 +6,25 @@
 #define READING_BOARD_H
 
 #include "Position.h"
+#include "Prng.h"
 #include "Union.h"
+#include <cstdint>
 #include <random>
 #include <vector>
-
-template <size_t board_size> class Board {
+class Board {
 
 private:
-  Union<board_size> un;
-  Position<board_size> position;
-  SquareType<board_size> last_move{board_size * board_size};
+  Union un;
+  Position position;
+  uint16_t last_move;
 
 public:
+
+
+  Board(size_t size):position(size),un(size){
+    last_move = size*size;
+  }
+
   void make_move(int index) {
     position.make_move(index);
     add_to_union(index);
@@ -77,42 +84,47 @@ public:
     }
   }
 
-  Union<board_size> &get_union() { return un; }
+  Union& get_union() { return un; }
 
-  Color play_out(std::mt19937_64 &source) {
+  Color play_out(Prng &source) {
     Color winner = get_winner();
+    bit_pattern empty_squares = ~(get_position().WP | get_position().BP);
+
     while (winner == EMPTY) {
-      bit_pattern empty_squares = ~(get_position().WP | get_position().BP);
+
       std::uniform_int_distribution<int> distrib(
           0, get_position().get_num_empty());
 
       auto index = empty_squares.get_bit_index(distrib(source));
+      empty_squares[index] = 0;
       make_move(index);
-      save_bridge(source, index);
+
+      auto ret = save_bridge(source, index);
+      if (ret != -1) {
+        empty_squares[ret] = 0;
+      }
+
       winner = get_winner();
     }
     return winner;
   }
 
-  Position<board_size> &get_position() { return position; }
+  Position &get_position() { return position; }
 
-  void save_bridge(std::mt19937_64 &random_source, size_t hex_point) {
+  int save_bridge(Prng &random_source, size_t hex_point) {
+    int value = -1;
     if (is_on_edge<board_size>(hex_point)) {
       // will be done later
-      return;
+      return value;
     }
-    Position<board_size> neigh;
-
-    size_t rand_start = random_source() % 6;
+    Position neigh(board_size);
+    std::uniform_int_distribution<int> distrib(0, 5);
+    size_t rand_start = distrib(random_source);
     Color opp_color = ~position.get_square(hex_point);
     auto neigh_bours = position.get_neighbours(hex_point);
-    /*
-           for (auto sq: neigh_bours) {
-               neigh.BP.set_bit(sq);
-           }
-   */
-    size_t state = 0;
+
     size_t ret = 0;
+    size_t state = 0;
     for (auto i = 0; i < 6; ++i) {
       auto index = rand_start + i;
       index = index % 6;
@@ -132,20 +144,16 @@ public:
         ret = neigh_bours[index];
         state = 2;
       } else if (state == 2 && current == opp_color) {
-        /*       std::cout << "Index: " << hex_point << std::endl;
-               Position<board_size> test;
-               test.BP.set_bit(hex_point);
-               test.print();
-               neigh.print();
-               position.print();*/
+
         make_move(ret);
-        /* position.print();
-         std::cout << std::endl;*/
+        return ret;
         break;
       } else {
         state = 0;
       }
     }
+    return value;
+    ;
   }
 };
 
