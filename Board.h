@@ -11,18 +11,19 @@
 #include <cstdint>
 #include <random>
 #include <vector>
+#include <iostream>
 class Board {
 
 private:
   Union un;
   Position position;
   uint16_t last_move;
-
+  const size_t size;
 public:
 
 
-  Board(size_t size):position(size),un(size){
-    last_move = size*size;
+  Board(size_t s):size(s),position(s),un(s){
+    last_move = s*s;
   }
 
   void make_move(int index) {
@@ -34,55 +35,57 @@ public:
   void add_to_union(int index) {
     const Color index_color = ~position.get_mover();
 
-    if (index_color == BLACK && is_north_edge<board_size>(index)) {
-      un.merge(NORTH<board_size>, index);
+    if (index_color == BLACK && is_north_edge(size,index)) {
+      un.merge_north(index);
     }
-    if (index_color == BLACK && is_south_edge<board_size>(index)) {
-      un.merge(SOUTH<board_size>, index);
+    if (index_color == BLACK && is_south_edge(size,index)) {
+      un.merge_south(index);
     }
-    if (index_color == WHITE && is_west_edge<board_size>(index)) {
-      un.merge(WEST<board_size>, index);
+    if (index_color == WHITE && is_west_edge(size,index)) {
+      un.merge_west(index);
     }
-    if (index_color == WHITE && is_east_edge<board_size>(index)) {
-      un.merge(EAST<board_size>, index);
+    if (index_color == WHITE && is_east_edge(size,index)) {
+      un.merge_east(index);
     }
 
-    if (!is_north_edge<board_size>(index) &&
-        get_position().get_square(index - board_size) == index_color) {
-      un.merge(index - board_size, index);
+    if (!is_north_edge(size,index) &&
+        get_position().get_square(index - size) == index_color) {
+      un.merge(index - size, index);
     }
-    if (!is_south_edge<board_size>(index) &&
-        get_position().get_square(index + board_size) == index_color) {
-      un.merge(index + board_size, index);
+    if (!is_south_edge(size,index) &&
+        get_position().get_square(index + size) == index_color) {
+      un.merge(index + size, index);
     }
-    if (!is_west_edge<board_size>(index) &&
+    if (!is_west_edge(size,index) &&
         get_position().get_square(index - 1) == index_color) {
       un.merge(index - 1, index);
     }
-    if (!is_west_edge<board_size>(index) && !is_south_edge<board_size>(index) &&
-        get_position().get_square(index + board_size - 1) == index_color) {
-      un.merge(index + board_size - 1, index);
+    if (!is_west_edge(size,index) && !is_south_edge(size,index) &&
+        get_position().get_square(index + size - 1) == index_color) {
+      un.merge(index + size - 1, index);
     }
 
-    if (!is_east_edge<board_size>(index) &&
+    if (!is_east_edge(size,index) &&
         get_position().get_square(index + 1) == index_color) {
       un.merge(index + 1, index);
     }
-    if (!is_east_edge<board_size>(index) && !is_north_edge<board_size>(index) &&
-        get_position().get_square(index - (board_size - 1)) == index_color) {
-      un.merge(index - (board_size - 1), index);
+    if (!is_east_edge(size,index) && !is_north_edge(size,index) &&
+        get_position().get_square(index - (size - 1)) == index_color) {
+      un.merge(index - (size - 1), index);
     }
   }
 
   Color get_winner() {
-    if (un.in_same_set(NORTH<board_size>, SOUTH<board_size>)) {
-      return BLACK;
-    } else if (un.in_same_set(WEST<board_size>, EAST<board_size>)) {
+
+    if(un.is_white_win())
       return WHITE;
-    } else {
-      return EMPTY;
-    }
-  }
+
+    if(un.is_black_win())
+      return BLACK;
+
+    return EMPTY;
+
+   }
 
   Union& get_union() { return un; }
 
@@ -111,13 +114,17 @@ public:
 
   Position &get_position() { return position; }
 
+  const Position& get_position()const{
+    return position;
+  }
+
   int save_bridge(Prng &random_source, size_t hex_point) {
     int value = -1;
-    if (is_on_edge<board_size>(hex_point)) {
+    if (is_on_edge(size,hex_point)) {
       // will be done later
       return value;
     }
-    Position neigh(board_size);
+    Position neigh(size);
     std::uniform_int_distribution<int> distrib(0, 5);
     size_t rand_start = distrib(random_source);
     Color opp_color = ~position.get_square(hex_point);
@@ -130,9 +137,9 @@ public:
       index = index % 6;
       auto value = neigh_bours[index];
       Color current;
-      if (value == NORTH<board_size> || value == SOUTH<board_size>) {
+      if (value == un.NORTH || value == un.SOUTH) {
         current = BLACK;
-      } else if (value == WEST<board_size> || value == EAST<board_size>) {
+      } else if (value == un.WEST || value == un.EAST) {
         current = WHITE;
       } else {
         current = position.get_square(value);
@@ -155,6 +162,16 @@ public:
     return value;
     ;
   }
+
+  friend std::ostream &operator<<(std::ostream &stream, const Board &other) {
+     stream<<other.get_position();
+    return stream;
+  }
+
+
+
+
+
 };
 
 #endif // READING_BOARD_H

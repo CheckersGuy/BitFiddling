@@ -15,7 +15,7 @@
 template <size_t board_size> class Search {
 
 public:
-  Board<board_size> board;
+  Board board;
   size_t max_time{10000000ull};
   size_t num_iterations{0};
   size_t max_nodes;
@@ -26,7 +26,7 @@ public:
 
 public:
   Search()
-      : rand_source(
+      :board(board_size), rand_source(
             std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::high_resolution_clock::now().time_since_epoch())
                 .count()) {}
@@ -42,10 +42,13 @@ public:
   }
 
   void iterate() {
-    Board<board_size> iter_board(board);
+    Board iter_board(board);
     Node<board_size> *current = root.get();
-
+    if(current->is_terminal()){
+      std::cout<<"Is terminal"<<std::endl;
+    }
     while (current->get_num_children() != 0 && !current->is_terminal()) {
+      std::cout<<"TESTLOOPWHILE"<<std::endl;
       current = current->select();
       iter_board.make_move(current->get_move());
     }
@@ -91,8 +94,8 @@ public:
 
   void set_search_time(size_t time) { max_time = time; }
 
-  std::vector<SquareType<board_size>> get_pv() {
-    std::vector<SquareType<board_size>> result;
+  std::vector<uint16_t> get_pv() {
+    std::vector<uint16_t> result;
     Node<board_size> *current = root.get();
     while (current != nullptr && current->get_num_children() != 0) {
       current = current->best_child();
@@ -117,7 +120,9 @@ public:
   void search() {
     num_iterations = 0;
     nodes_in_tree = 0;
-    if (board.get_winner() != EMPTY)
+    if (board.get_winner() != EMPTY){
+      std::cout<<"BLAA"<<std::endl;
+    }
       return;
 
     nodes_in_tree = 0;

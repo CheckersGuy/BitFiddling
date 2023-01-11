@@ -8,13 +8,6 @@
 #include <stddef.h>
 #include <type_traits>
 
-template <size_t board_size> constexpr size_t NORTH = board_size *board_size;
-
-template <size_t board_size>
-constexpr size_t SOUTH = board_size *board_size + 1;
-template <size_t board_size> constexpr size_t WEST = board_size *board_size + 2;
-template <size_t board_size> constexpr size_t EAST = board_size *board_size + 3;
-
 inline bool is_north_edge(size_t board_size,size_t idx) {
   size_t row = (idx / board_size);
   return row == 0;
@@ -36,9 +29,9 @@ inline bool is_east_edge(size_t board_size,size_t idx) {
 }
 
 inline bool is_on_edge(size_t board_size,size_t idx) {
-  return is_east_edge<board_size>(idx) | is_west_edge<board_size>(idx) |
-             is_south_edge<board_size>(idx) ||
-         is_north_edge<board_size>(idx);
+  return is_east_edge(board_size,idx) | is_west_edge(board_size,idx) |
+             is_south_edge(board_size,idx) ||
+         is_north_edge(board_size,idx);
 }
 
 inline constexpr uint64_t get_board_mask(size_t board_size) {

@@ -23,8 +23,8 @@ public:
   uint32_t num_rave{0};
   double q_value{0};
   double q_rave{0};
-  SquareType<board_size> move;
-  SquareType<board_size> num_children{0};
+  uint16_t move;
+  uint16_t num_children{0};
   TerminalState state{UNKNOWN};
 
 public:

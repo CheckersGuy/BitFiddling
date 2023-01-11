@@ -28,16 +28,24 @@ int main(int argl, const char **argc) {
   constexpr size_t board_size = 9;
   Search<board_size> search;
   search.set_max_tree_size(100000000);
+  std::cout<<search.board<<std::endl;
+
+
   for (auto i = 0; i < board_size * board_size; ++i) {
     search.init();
-    if (search.board.get_winner() != EMPTY)
+    std::cout<<search.board<<std::endl;
+    std::cout<<"Winner: "<<(int)search.board.get_winner()<<std::endl;
+    if (search.board.get_winner() != EMPTY){
+      std::cout<<"Breaking winner"<<std::endl;
       break;
+    }
     if (search.board.get_position().color == BLACK) {
-      search.max_time = 10000;
+      std::cout<<"Start Search"<<std::endl;
+      search.max_time = 1000;
       search.set_max_nodes(1000000000);
 
     } else {
-      search.max_time = 300000;
+      search.max_time = 1000;
       search.set_max_nodes(1000000000);
     }
 
